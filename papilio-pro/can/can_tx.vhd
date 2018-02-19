@@ -34,6 +34,7 @@ architecture rtl of can_tx is
 	--But not in the CRC delimiter, ACK, and end of frame fields.
 	signal bit_shift_one_bits : std_logic_vector(4 downto 0) := (others =>'0');
 	signal bit_shift_zero_bits : std_logic_vector(4 downto 0) := (others => '1');
+	alias can_logic_bit_next : std_logic is shift_buff(63);
 
 	-- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
 	alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
@@ -73,6 +74,7 @@ begin
 			report "LOWCAN";
 			can_valid_has_been_low <= '1';
 		end if;
+
 		if rising_edge(clk) then
 			if can_valid ='1' and can_valid_has_been_low = '1' and can_tx_state = can_tx_idle then
 				report "CANUP";
@@ -113,11 +115,12 @@ begin
 						if needs_stuffing = '1' then
 							report "STUFFING";
 							can_phy_tx <= stuffing_value;
+							--and reset
 							bit_shift_one_bits <= (others => '0');
 							bit_shift_zero_bits <= (others => '1');
 						else
-							can_phy_tx <= shift_buff(63);
-							shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
+							can_phy_tx <= can_logic_bit_next;
+							shift_buff <= shift_buff(62 downto 0) & can_logic_bit_next;
 							can_bit_count <= can_bit_count -1;
 							bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & shift_buff(63);
 							bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & shift_buff(63);	
@@ -133,10 +136,23 @@ begin
 						end if;	
 					when can_tx_control =>
 						report "Control bites";	
-						can_phy_tx <= shift_buff(63);						
-						can_bit_count <= can_bit_count -1;
-						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
+						if needs_stuffing = '1' then
+							report "STUFFING";
+							can_phy_tx <= stuffing_value;
+							--and reset
+							bit_shift_one_bits <= (others => '0');
+							bit_shift_zero_bits <= (others => '1');
+						else
+							can_phy_tx <= can_logic_bit_next;						
+							can_bit_count <= can_bit_count -1;
+							shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
+
+							bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & shift_buff(63);
+							bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & shift_buff(63);	
+						end if;						
+
 						
+
 						if can_bit_count = "0000001" then
 							case can_dlc_buf is
 							when "0000" =>
