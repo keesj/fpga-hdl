@@ -3,15 +3,19 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity can_tx is
-    port (  clk         : in  std_logic;            
+	port (  clk         : in  std_logic;            
+	
             can_id      : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
 		    can_dlc     : in  std_logic_vector (3 downto 0);
 		    can_data    : in  std_logic_vector (63 downto 0);
 		    can_valid   : in  std_logic;
 			can_start   : in  std_logic;
-			can_out_tx     : out  std_logic;
-			can_out_tx_en  : out  std_logic;
-			status      : out std_logic_vector (32 downto 0));
+			status      : out std_logic_vector (32 downto 0);
+
+			can_phy_tx     : out  std_logic;
+			can_phy_tx_en  : out  std_logic;
+			can_phy_rx     : in std_logic
+	);
 end can_tx;
 
 architecture rtl of can_tx is
@@ -21,7 +25,6 @@ architecture rtl of can_tx is
     signal can_data_buf : std_logic_vector (63 downto 0);
 
     signal can_bit_counter : signed(5 downto 0);--random shit
-	signal tx_out : std_logic;
 
 	-- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
 	alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0);
@@ -42,7 +45,6 @@ architecture rtl of can_tx is
 
 	signal can_tx_state: can_tx_states := can_tx_idle;
 begin
-    can_out_tx <= tx_out;
 
 	count: process(clk,can_valid)
 	begin
@@ -56,16 +58,20 @@ begin
 			  can_tx_state <= can_tx_start_of_frame;
 			  can_bit_counter <= "000000";
 			end if;
+
 			can_bit_counter <= can_bit_counter + 1;
 
 			if (can_bit_counter = 100) then
+				can_bit_counter <= "000000";
 				case can_tx_state is
 					when can_tx_start_of_frame =>
 						can_tx_state <= can_tx_idle;	
-						tx_out <= '1';
+						can_phy_tx <= '0';
+						can_phy_tx_en  <='1';
 					when others =>
 					can_tx_state <= can_tx_idle;
-						tx_out <= '0';
+						can_phy_tx <= '0';
+						can_phy_tx_en  <='0';
 				end case;
 			end if;
 		end if;
