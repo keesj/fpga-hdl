@@ -53,8 +53,7 @@ architecture rtl of can_tx is
 		can_tx_arbitration,    -- 12 bit = 11 bit id + req remote
 		can_tx_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
 		can_tx_data,           -- 0-64 bits (0 + 8 * dlc)
-  		can_tx_crc,            -- 15 bits 
-		can_tx_crc_field,      -- 1 bit 1
+  		can_tx_crc,            -- 15 bits + 1 bit crc delimiter
 		can_tx_ack_slot,       -- 1 bit
 		can_tx_ack_delimiter,  -- 1 bit 
 		can_tx_eof             -- 7 bit
@@ -90,9 +89,7 @@ begin
 		crc => crc_data
 	  );
 
-	crc_din <= shift_buff(127);
-	crc_ce <= '0';
-	crc_rst <='1';
+	--crc_din <= shift_buff(127);
 
 	-- status / next state logic
 	status(0) <= '0' when can_tx_state = can_tx_idle else '1';	
@@ -102,11 +99,12 @@ begin
 	crc_din <= next_tx_value;
 	
 	
-	count: process(clk,can_valid)
+	count: process(clk)
 	begin
 		if rising_edge(clk) then
 			crc_ce <= '0';
-			
+			can_bit_time_counter <= can_bit_time_counter +1;
+
 			if can_valid ='0' then
 				can_valid_has_been_low <= '1';
 			end if;
@@ -137,9 +135,7 @@ begin
 				crc_rst <= '1';	
 			end if;
 
-			can_bit_time_counter <= can_bit_time_counter +1;	
-
-
+			--When to send a bit
 			if can_bit_time_counter = 10 then
 
 				can_bit_time_counter <= (others => '0');
@@ -153,6 +149,7 @@ begin
 					bit_shift_one_bits <= (others => '0');
 					bit_shift_zero_bits  <= (others => '1');
 				else
+					--shift bits for the next round
 					shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
 					can_bit_counter <= can_bit_counter +1; 	
 					crc_rst <= '0';	
@@ -209,11 +206,14 @@ begin
 							end if;
 
 							if can_bit_counter = 15 then
-								can_tx_state <= can_tx_idle;
+								can_tx_state <= can_tx_ack_delimiter;
 								crc_rst <= '1';
 							end if;	
-						when others =>
-							report "OTHER";
+						when can_tx_ack_delimiter =>
+							can_tx_state <= can_tx_ack_slot;
+						when can_tx_ack_slot => 
+							can_tx_state <= can_tx_eof;
+						when can_tx_eof =>
 							can_tx_state <= can_tx_idle;
 					end case;
 				end if;
