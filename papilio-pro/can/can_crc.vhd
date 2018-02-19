@@ -43,10 +43,12 @@ begin
 	begin
 		if rising_edge(clk) then
 			if rst = '1' then
-			 	crc_val <= (others => '1');
+				report "CRC RESET";
+			 	crc_val <= (others => '0');
 			else
 				if ce = '1' then
-					crc_val <=   crc_next;
+					report "CRC NEXT";
+					crc_val <= crc_next;
 				end if;
 			end if;
 		end if;

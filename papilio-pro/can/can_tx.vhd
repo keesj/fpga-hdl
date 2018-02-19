@@ -139,7 +139,8 @@ begin
 				bit_shift_one_bits <= (others => '0');
 				bit_shift_zero_bits  <= (others => '1');
 				crc_clk <= '1';
-				crc_rst <= '0';
+				crc_rst <= '1';	
+				crc_ce  <= '0';
 			end if;
 
 			can_bit_time_counter <= can_bit_time_counter +1;	
@@ -160,21 +161,24 @@ begin
 				else
 					shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
 					can_bit_counter <= can_bit_counter +1; 	
+					crc_rst <= '0';	
 					crc_clk <= '1';				
 					case can_tx_state is
 						when can_tx_idle =>
 							--report "IDLE";
 							can_phy_tx_en <= '0';	
-							stuffing_enabled <='0';										
+							stuffing_enabled <='0';
+							crc_ce <= '0';										
 						when can_tx_start_of_frame =>
 							report "SOF";
 							can_phy_tx_en <= '1';
-
+							crc_ce <= '1';
 							--perpare next state
 							can_bit_counter <= (others => '0');
 							can_tx_state <= can_tx_arbitration;	
 						when can_tx_arbitration =>
 							report "AR bites";										
+							crc_ce <= '1';
 							if can_bit_counter = 12 then
 								--prare next state
 								can_bit_counter <=(others => '0');
@@ -182,10 +186,12 @@ begin
 							end if;	
 						when can_tx_control =>
 							report "Control bites";	
+							crc_ce <= '1';
 							if can_bit_counter = 6 then
 								can_bit_counter <=(others => '0');
 								if can_dlc_buf = "0000" then
 									can_bit_counter <=(others => '0');
+									crc_ce <= '0';
 									can_tx_state <= can_tx_crc;
 								else 
 									can_tx_state <= can_tx_data;
@@ -193,14 +199,26 @@ begin
 							end if;	
 						when can_tx_data =>
 							report "Data bites";
+							crc_ce <= '1';
 							if can_bit_counter = (8 * unsigned(can_dlc_buf) -1) then
 								can_bit_counter <= (others => '0');
-								can_tx_state <= can_tx_crc;						
+								can_tx_state <= can_tx_crc;
+								crc_ce <= '0';
 							end if;											
 						when can_tx_crc =>
-							report "CRC bites";					
-							can_tx_state <= can_tx_idle;
-							crc_rst <= '1';						
+							report "CRC bites";							
+							if can_bit_counter = "0000" then
+								--copy crc 
+								can_crc_buf <= crc_data;
+								--Add to send buffer
+								shift_buff(127 downto 112) <= can_crc_buf & '0';								
+								--shift_buff(127 downto 112) <= (others => '1');						
+							end if;
+
+							if can_bit_counter = 15 then
+								can_tx_state <= can_tx_idle;
+								crc_rst <= '1';
+							end if;	
 						when others =>
 							report "OTHER";
 							can_tx_state <= can_tx_idle;
