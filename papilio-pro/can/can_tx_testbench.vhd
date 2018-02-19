@@ -63,7 +63,8 @@ begin
     wait for 10 ns; -- wait until global set/reset completes
     -- add user defined stimulus here
 
-    can_id(31 downto 21)  <= "00000010100";
+    --can_id(31 downto 21)  <= "000" & "0001" & "0100";
+    can_id(31 downto 21)  <= "000" & "0001" & "0100";
     can_id(0) <= '0';
     can_dlc <= "0001";
     can_data  <= X"0100000000000000" ;
@@ -123,6 +124,16 @@ begin
     can_id(0) <= '0';
     can_dlc <= "1000";
     can_data  <= X"436f707972696768" ;
+    can_valid <= '1';
+    wait until rising_edge(clk);
+    wait until falling_edge(clk);
+    can_valid <= '0';
+    wait until status(0) ='0';
+
+    can_id(31 downto 21)  <= "010" & "0000" & "0010";
+    can_id(0) <= '0';
+    can_dlc <= "0101";
+    can_data  <= X"0050004e52696768" ;
     can_valid <= '1';
     wait until rising_edge(clk);
     wait until falling_edge(clk);

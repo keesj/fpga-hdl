@@ -149,12 +149,9 @@ begin
 
             --When to send a bit
             if can_bit_time_counter = 10 then
-
                 can_bit_time_counter <= (others => '0');
 
                 can_phy_tx_buf <= next_tx_value ;
-                bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & next_tx_value;
-                bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & next_tx_value;
                 
                 if needs_stuffing = '1' then
                     report "STUFFING";
@@ -163,6 +160,9 @@ begin
                 else
                     --shift bits for the next round
                     shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
+                    bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & next_tx_value;
+                    bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & next_tx_value;
+
                     can_bit_counter <= can_bit_counter +1; 
                     crc_rst <= '0';
                     case can_tx_state is
@@ -211,7 +211,7 @@ begin
                                 can_tx_state <= can_tx_crc;
                             end if;
                         when can_tx_crc =>
-                            if can_bit_counter = 0 then
+                            if can_bit_counter = 1 then
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
                                 shift_buff(127 downto 112) <= crc_data & '0';
