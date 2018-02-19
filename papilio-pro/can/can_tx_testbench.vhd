@@ -23,16 +23,18 @@ architecture behavior of can_tx_testbench is
     );
     end component;
 
-    signal clk         :   std_logic;            
-    signal can_id      :   std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
-    signal can_dlc     :   std_logic_vector (3 downto 0);
-    signal can_data    :   std_logic_vector (63 downto 0);
-    signal can_valid   :   std_logic;
-    signal can_start   :   std_logic;
-    signal status      :  std_logic_vector (32 downto 0);
-    signal can_phy_tx     :   std_logic;
-    signal can_phy_tx_en  :   std_logic;
-    signal can_phy_rx     :  std_logic;
+    signal clk         :   std_logic := '0';            
+    signal can_id      :   std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
+    signal can_dlc     :   std_logic_vector (3 downto 0) := (others => '0');
+    signal can_data    :   std_logic_vector (63 downto 0) := (others => '0');
+    signal can_valid   :   std_logic := '0';
+    signal can_start   :   std_logic:= '0';
+    signal status      :  std_logic_vector (32 downto 0):= (others => '0');
+    signal can_phy_tx     :   std_logic:= '0';
+    signal can_phy_tx_en  :   std_logic:= '0';
+    signal can_phy_rx     :  std_logic:= '0';
+
+    constant clk_period : time := 10 ns;
 
 begin
     uut: can_tx port map(
@@ -47,4 +49,28 @@ begin
         can_phy_tx_en  => can_phy_tx_en,
         can_phy_rx     => can_phy_rx
     );
+
+
+   clk_process :process
+   begin
+        clk <= '0';
+        wait for clk_period/2;  --for 0.5 ns signal is '0'.
+        clk <= '1';
+        wait for clk_period/2;  --for next 0.5 ns signal is '1'.
+   end process;
+
+  -- Test bench statements
+  tb : process
+  begin
+    wait for 10 ns; -- wait until global set/reset completes
+    -- add user defined stimulus here
+    can_id  <= "11001101000000001111111100000000";
+    can_dlc <= "0001";
+    can_data  <= X"1122334455667788" ;
+    can_valid <= '1';
+    wait for 1 ms;
+    can_valid <= '0';
+    wait for 1 ms;
+    wait; -- will wait forever
+  end process tb; 
 end;
