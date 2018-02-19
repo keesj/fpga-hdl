@@ -41,7 +41,7 @@ begin
 
     count: process(clk)
     begin
-        if falling_edge(clk) then
+        if rising_edge(clk) then
             if rst = '1' then
                  crc_val <= (others => '0');
             else
