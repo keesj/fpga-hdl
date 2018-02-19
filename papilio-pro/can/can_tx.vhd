@@ -27,6 +27,10 @@ architecture rtl of can_tx is
 	signal can_bit_time_counter : unsigned (7 downto 0) := (others => '0');		
 	signal can_bit_count : unsigned (7 downto 0) := (others => '0');		
 
+	-- two buffers to keep the last bits sent
+	signal bit_shift_one_bits : std_logic_vector(5 downto 0) := (others =>'0');
+	signal bit_shift_zero_bits : std_logic_vector(5 downto 0) := (others => '1');
+
 	-- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
 	alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
 	alias  can_eff_buf  : std_logic is can_id_buf(31);
@@ -70,6 +74,9 @@ begin
 				can_dlc_buf <= can_dlc;
 				can_data_buf <= can_data;
 				can_tx_state <= can_tx_start_of_frame;
+
+				bit_shift_one_bits <= (others => '0');
+				bit_shift_zero_bits  <= (others => '1');
 			end if;
 
 			can_bit_time_counter <= can_bit_time_counter +1;	
