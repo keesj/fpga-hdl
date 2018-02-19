@@ -115,7 +115,7 @@ begin
                 
                 -- and prepare next fields
                 -- 12 bits id + rtr 
-                -- start of frame + id (11 bit) + rtr TODO 31-31 and 30 are overlapping !
+                -- start of frame + id (11 bit) + rtr 
                 shift_buff(127 downto 115) <= '0' & can_id(31 downto 21)  & can_id(0);
                 -- IDE + reservered + dlc
                 shift_buff(114 downto 109) <= "0" & "0" & can_dlc;
@@ -165,7 +165,7 @@ begin
                         when can_tx_arbitration =>
                             report "AR bites";
                             crc_ce <= '1';
-                            if can_bit_counter = 12 then
+                            if can_bit_counter = 11  then
                                 --prare next state
                                 can_bit_counter <=(others => '0');
                                 can_tx_state <= can_tx_control;
@@ -176,7 +176,9 @@ begin
                             if can_bit_counter = 5 then
                                 can_bit_counter <=(others => '0');
                                 if can_dlc_buf = "0000" then
+                                    -- keep in sync with .. bellow
                                     can_tx_state <= can_tx_crc;
+                                    crc_ce <= '0';
                                 else 
                                     can_tx_state <= can_tx_data;
                                 end if;
@@ -184,23 +186,18 @@ begin
                         when can_tx_data =>
                             report "Data bites";
                             crc_ce <= '1';
-
-                            if can_bit_counter = (8 * unsigned(can_dlc_buf)) -2 then
-                                crc_ce <= '0';
-                            end if;
                             
                             if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1 then
+                                crc_ce <= '0';
                                 can_bit_counter <= (others => '0');
                                 can_tx_state <= can_tx_crc;
-
+                            end if;
+                        when can_tx_crc =>
+                            if can_bit_counter = 0 then
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
                                 shift_buff(127 downto 112) <= crc_data & '0';
-                                --shift_buff(127 downto 112) <= (others => '1');
-                            else 
-                            
                             end if;
-                        when can_tx_crc =>
                             if can_bit_counter = 15 then
 
                                 can_bit_counter <= (others => '0');

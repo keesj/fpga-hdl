@@ -63,7 +63,8 @@ begin
     wait for 10 ns; -- wait until global set/reset completes
     -- add user defined stimulus here
 
-    can_id  <= "00000010100" & "000001111111100000000";
+    can_id(31 downto 21)  <= "00000010100";
+    can_id(0) <= '0';
     can_dlc <= "0001";
     can_data  <= X"0100000000000000" ;
 
@@ -73,9 +74,9 @@ begin
     can_valid <= '0';
     wait until status(0) ='0';
 
-   
-    can_id  <= "11001101000000001111111100000000";
-    can_dlc <= "0011";
+    can_id(31 downto 21)  <= "00001111000";
+    can_id(0) <= '0';
+    can_dlc <= "0000";
     can_data  <= X"1122334455667788" ;
     can_valid <= '1';   
     wait until rising_edge(clk);
@@ -83,8 +84,9 @@ begin
     can_valid <= '0';
     wait until status(0) ='0';
 
+    can_id(31 downto 21)  <= "00000101000";
+    can_id(0) <= '0';
 
-    can_id  <= "00000101000000001111111100000000";
     can_dlc <= "0001";
     can_data  <= X"1122334455667788" ;
     can_valid <= '1';   
@@ -93,7 +95,8 @@ begin
     can_valid <= '0';
     wait until status(0) ='0';
 
-    can_id  <= "00000100000000001111111100000000";
+    can_id(31 downto 21)  <= "00000101000";
+    can_id(0) <= '0';
     can_dlc <= "0010";
     can_data  <= X"1122334455667788" ;
     can_valid <= '1';
@@ -102,9 +105,12 @@ begin
     can_valid <= '0';
     wait until status(0) ='0';
 
-    can_id  <= "00000001101" &"000001111111100000000";
+    --based on 
+    --https://github.com/EliasOenal/sigrok-dumps/blob/master/can/arbitrary_traffic/bsd_license_can_standard_500k.logicdata
+    can_id(31 downto 21)  <= "0000" & "0001101";
+    can_id(0) <= '0';
     can_dlc <= "1000";
-    can_data  <= X"436f707972696769" ;
+    can_data  <= X"436f707972696768" ;
     can_valid <= '1';
     wait until rising_edge(clk);
     wait until falling_edge(clk);
