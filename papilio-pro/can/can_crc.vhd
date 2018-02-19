@@ -8,9 +8,9 @@ use IEEE.NUMERIC_STD.ALL;
 -- and https://www.can-cia.org/can-knowledge/can/crc/
 entity can_crc is
     Port ( clk : in  STD_LOGIC;
-           reset : in STD_LOGIC;
+			  din : in  STD_LOGIC;
            ce : in  STD_LOGIC;
-           din : in  STD_LOGIC;
+			  rst : in STD_LOGIC;
            crc : out  STD_LOGIC_VECTOR(14 downto 0)
     );
 end can_crc;
@@ -19,13 +19,13 @@ architecture RTL of can_crc is
 	signal crc_val : STD_LOGIC_VECTOR (14 downto 0);
 begin
 	crc <= crc_val;
-	count: process(clk,reset,ce)
+	count: process(clk,rst,ce)
 	begin
-		if reset = '1' then
+		if rst = '1' then
  			crc_val <= (others => '1');		
 		elsif rising_edge(ce) then
 			if rising_edge(clk) then
-       				-- x15 + x14 + x10 + x8 + x7 +x4 +x3 + 1 
+       		-- x15 + x14 + x10 + x8 + x7 +x4 +x3 + 1 
 				crc_val(0) <= crc_val(14) xor din;
 				crc_val(1) <= crc_val(0);
 				crc_val(2) <= crc_val(1);
