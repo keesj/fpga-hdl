@@ -10,8 +10,7 @@ entity can_tx is
 		    can_data    : in  std_logic_vector (63 downto 0);
 		    can_valid   : in  std_logic;
 			can_start   : in  std_logic;
-			status      : out std_logic_vector (32 downto 0);
-
+			status      : out std_logic_vector (31 downto 0);
 			can_phy_tx     : out  std_logic;
 			can_phy_tx_en  : out  std_logic;
 			can_phy_rx     : in std_logic
@@ -93,11 +92,11 @@ begin
 
 	-- status / next state logic
 	status(0) <= '0' when can_tx_state = can_tx_idle else '1';	
+	status(31 downto 1) <= (others => '0');	
 	needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
 	stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 	next_tx_value <= stuffing_value when needs_stuffing = '1' else shift_buff(127);
 	crc_din <= next_tx_value;
-	
 	
 	count: process(clk)
 	begin
