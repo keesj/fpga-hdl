@@ -96,7 +96,7 @@ begin
     needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
     stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
     next_tx_value <= stuffing_value when needs_stuffing = '1' else shift_buff(127);
-    crc_din <= next_tx_value;
+    crc_din <= shift_buff(127);
     
     count: process(clk)
     begin
@@ -117,7 +117,7 @@ begin
                 can_data_buf <= can_data;
                 
                 -- and prepare next fields
-                -- 12 bits id + rtr (retry?)
+                -- 12 bits id + rtr 
                 -- start of frame + id (11 bit) + rtr TODO 31-31 and 30 are overlapping !
                 shift_buff(127 downto 115) <= '0' & can_id(31 downto 21)  & can_id(0);
                 -- IDE + reservered + dlc
@@ -176,11 +176,9 @@ begin
                         when can_tx_control =>
                             report "Control bites";
                             crc_ce <= '1';
-                            if can_bit_counter = 6 then
+                            if can_bit_counter = 5 then
                                 can_bit_counter <=(others => '0');
                                 if can_dlc_buf = "0000" then
-                                    can_bit_counter <=(others => '0');
-                                    crc_ce <= '0';
                                     can_tx_state <= can_tx_crc;
                                 else 
                                     can_tx_state <= can_tx_data;
@@ -189,20 +187,16 @@ begin
                         when can_tx_data =>
                             report "Data bites";
                             crc_ce <= '1';
-                            if can_bit_counter = (8 * unsigned(can_dlc_buf) -1) then
+                            if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1 then
                                 can_bit_counter <= (others => '0');
                                 can_tx_state <= can_tx_crc;
-                                crc_ce <= '0';
-                            end if;
-                        when can_tx_crc =>
-                            report "CRC bit" & std_logic'image(next_tx_value);
-                            if can_bit_counter = "0000" then
-                                --copy crc (but we do not use it...)
+
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
                                 shift_buff(127 downto 112) <= crc_data & '0';
+                                --shift_buff(127 downto 112) <= (others => '1');
                             end if;
-
+                        when can_tx_crc =>
                             if can_bit_counter = 15 then
                                 can_tx_state <= can_tx_ack_delimiter;
                                 crc_rst <= '1';
