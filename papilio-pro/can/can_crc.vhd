@@ -8,9 +8,9 @@ use ieee.numeric_std.all;
 -- and https://www.can-cia.org/can-knowledge/can/crc/
 entity can_crc is
     port ( clk : in  std_logic;
-			  din : in  std_logic;
+	   din : in  std_logic;
            ce : in  std_logic;
-			  rst : in std_logic;
+	   rst : in std_logic;
            crc : out  std_logic_vector(14 downto 0)
     );
 end can_crc;
@@ -25,7 +25,7 @@ begin
  			crc_val <= (others => '1');		
 		elsif rising_edge(ce) then
 			if rising_edge(clk) then
-       		-- x15 + x14 + x10 + x8 + x7 +x4 +x3 + 1 
+       		                -- x15 + x14 + x10 + x8 + x7 +x4 +x3 + 1 
 				crc_val(0) <= crc_val(14) xor din;
 				crc_val(1) <= crc_val(0);
 				crc_val(2) <= crc_val(1);
