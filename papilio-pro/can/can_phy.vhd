@@ -2,16 +2,18 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 entity can_phy is
-    port ( tx : in  std_logic;
-           tx_en : in  std_logic;
-           rx : out  std_logic;
-       can_collision : out std_logic; --detect detect collisions
-           can_l : inout  std_logic;
-           can_h : inout  std_logic);
+    port ( 
+        tx : in  std_logic;
+        tx_en : in  std_logic;
+        rx : out  std_logic;
+        can_collision : out std_logic; --detect detect collisions
+        can_l : inout  std_logic;
+        can_h : inout  std_logic
+    );
 end can_phy;
 
 architecture rtl of can_phy is
-       signal rx_out : std_logic; --create rx_out as buffer
+    signal rx_out : std_logic; --create rx_out as buffer
 begin
     rx <= rx_out;
     --driving the can bus when en is enabled

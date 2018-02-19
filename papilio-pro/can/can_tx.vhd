@@ -197,22 +197,23 @@ begin
                         when can_tx_crc =>
                             report "CRC bit" & std_logic'image(next_tx_value);
                             if can_bit_counter = "0000" then
-                                --copy crc 
+                                --copy crc (but we do not use it...)
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
-                                shift_buff(127 downto 112) <= can_crc_buf & '0';
-                                --shift_buff(127 downto 112) <= (others => '1');
+                                shift_buff(127 downto 112) <= crc_data & '0';
                             end if;
 
                             if can_bit_counter = 15 then
                                 can_tx_state <= can_tx_ack_delimiter;
                                 crc_rst <= '1';
+                                -- After crc and the crc delimiter we have
                             end if;
                         when can_tx_ack_delimiter =>
                             can_tx_state <= can_tx_ack_slot;
                         when can_tx_ack_slot => 
                             can_tx_state <= can_tx_eof;
                         when can_tx_eof =>
+                            -- TODO disable stuffing
                             can_tx_state <= can_tx_idle;
                     end case;
                 end if;

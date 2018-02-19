@@ -11,10 +11,10 @@ architecture behavior of can_crc_testbench is
   -- component declaration
   component can_crc
    port ( clk : in  std_logic;
-        din : in  std_logic;
-        ce : in  std_logic;
-        rst : in std_logic;
-        crc : out  std_logic_vector(14 downto 0)
+          din : in  std_logic;
+          ce : in  std_logic;
+          rst : in std_logic;
+          crc : out  std_logic_vector(14 downto 0)
     );
   end component;
   

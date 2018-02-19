@@ -11,8 +11,8 @@ entity can_crc is
             clk : in  std_logic;
             din : in  std_logic;
             ce : in std_logic;
-               rst : in std_logic;
-               crc : out  std_logic_vector(14 downto 0)
+            rst : in std_logic;
+            crc : out  std_logic_vector(14 downto 0)
     );
 end can_crc;
 
@@ -43,11 +43,9 @@ begin
     begin
         if falling_edge(clk) then
             if rst = '1' then
-                report "CRC RESET";
                  crc_val <= (others => '0');
             else
                 if ce = '1' then
-                    report "CRC NEXT";
                     crc_val <= crc_next;
                 end if;
             end if;
