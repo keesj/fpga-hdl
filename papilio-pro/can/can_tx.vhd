@@ -21,11 +21,14 @@ architecture rtl of can_tx is
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
 
+    signal can_phy_tx_buf : std_logic := '0';
+    signal can_phy_tx_en_buf : std_logic := '0';
     signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
     
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
     signal can_bit_time_counter : unsigned (7 downto 0) := (others => '0');
     signal can_bit_counter : unsigned (7 downto 0) := (others => '0');
+    
 
     -- two buffers to keep the last bits sent
     --https://en.wikipedia.org/wiki/CAN_bus#Bit_stuffing
@@ -40,9 +43,6 @@ architecture rtl of can_tx is
     alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
     alias  can_eff_buf  : std_logic is can_id_buf(31);
     alias  can_rtr  : std_logic is can_id_buf(30);
-
-    signal can_valid_has_been_low : std_logic := '1';
-
     
     -- State
     type can_tx_states is (
@@ -88,6 +88,8 @@ begin
       );
 
     --crc_din <= shift_buff(127);
+    can_phy_tx_en <= can_phy_tx_en_buf;
+    can_phy_tx <= can_phy_tx_buf;
 
     -- status / next state logic
     status(0) <= '0' when can_tx_state = can_tx_idle else '1';
@@ -103,13 +105,9 @@ begin
             crc_ce <= '0';
             can_bit_time_counter <= can_bit_time_counter +1;
 
-            if can_valid ='0' then
-                can_valid_has_been_low <= '1';
-            end if;
-
-            if can_valid ='1' and can_valid_has_been_low = '1' and can_tx_state = can_tx_idle then
+            if can_valid ='1' and can_tx_state = can_tx_idle then
                 report "CANUP";
-                can_valid_has_been_low <= '0';
+
                 --copy the data to the internal buffers
                 can_id_buf <= can_id;
                 can_dlc_buf <= can_dlc;
@@ -138,7 +136,7 @@ begin
 
                 can_bit_time_counter <= (others => '0');
 
-                can_phy_tx <= next_tx_value ;
+                can_phy_tx_buf <= next_tx_value ;
                 bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & next_tx_value;
                 bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & next_tx_value;
                 
@@ -154,12 +152,12 @@ begin
                     case can_tx_state is
                         when can_tx_idle =>
                             --report "IDLE";
-                            can_phy_tx_en <= '0';
+                            can_phy_tx_en_buf <= '0';
                             stuffing_enabled <='0';
                             crc_ce <= '0';
                         when can_tx_start_of_frame =>
                             report "SOF";
-                            can_phy_tx_en <= '1';
+                            can_phy_tx_en_buf <= '1';
                             crc_ce <= '1';
                             --perpare next state
                             can_bit_counter <= (others => '0');
@@ -217,7 +215,7 @@ begin
                             -- TODO disable stuffing
                             if can_bit_counter = 6 then
                                 can_tx_state <= can_tx_idle;
-                                can_phy_tx_en <= '0';
+                                can_phy_tx_en_buf <= '0';
                             end if;                            
                     end case;
                 end if;
@@ -225,4 +223,3 @@ begin
         end if;
     end process;
 end rtl;
-
