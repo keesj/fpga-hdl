@@ -11,21 +11,21 @@ entity can_clk is
 end can_clk;
 
 architecture rtl of can_clk is
-	signal counter : signed (7 downto 0) := (others => '0');		
+        signal counter : signed (7 downto 0) := (others => '0');
 begin
-	-- Input clock is 100 mhz
-	-- Can bit time if 500.000 hence we want 10 faster
-	-- 500 khz
-	count: process(clk_in,sync)
-	begin
-		if rising_edge(clk_in) then
-			counter <= counter +1;	
-			sample_clk <= counter(3);
-		end if;
-		if rising_edge(sync) then
-			counter <= (others => '0');
-		end if;
-	end process;
-	
+    -- Input clock is 100 mhz
+    -- Can bit time if 500.000 hence we want 10 faster
+    -- 500 khz
+    count: process(clk_in,sync)
+    begin
+        if rising_edge(clk_in) then
+            counter <= counter +1;
+            sample_clk <= counter(3);
+        end if;
+        if rising_edge(sync) then
+            counter <= (others => '0');
+        end if;
+    end process;
+    
 end rtl;
 

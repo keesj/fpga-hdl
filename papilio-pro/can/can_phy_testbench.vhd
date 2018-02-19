@@ -12,7 +12,7 @@ architecture behavior of can_phy_testbench is
          tx : in  std_logic;
          tx_en : in  std_logic;
          rx : out  std_logic;
- 	 can_collision : out  std_logic;
+      can_collision : out  std_logic;
          can_l : inout  std_logic;
          can_h : inout  std_logic
         );
@@ -29,7 +29,7 @@ architecture behavior of can_phy_testbench is
    --outputs
    signal rx : std_logic;
    signal can_collision : std_logic;
-	
+    
    -- no clocks detected in port list. replace <clock> below with 
    -- appropriate port name 
  
@@ -37,7 +37,7 @@ architecture behavior of can_phy_testbench is
  
 begin
  
-	-- instantiate the unit under test (uut)
+    -- instantiate the unit under test (uut)
    uut: can_phy port map (
           tx => tx,
           tx_en => tx_en,
@@ -50,9 +50,9 @@ begin
 
    -- stimulus process
    stim_proc: process
-   begin		
+   begin
       -- hold reset state for 100 ns.
-      wait for 100 ns;	
+      wait for 100 ns;
 
       tx<='1';
       wait for clk_period*10;
