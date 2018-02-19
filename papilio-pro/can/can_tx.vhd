@@ -119,13 +119,12 @@ begin
                 shift_buff(127 downto 115) <= '0' & can_id(31 downto 21)  & can_id(0);
                 -- IDE + reservered + dlc
                 shift_buff(114 downto 109) <= "0" & "0" & can_dlc;
-                -- copy data (anyway)
+                -- copy all data
                 shift_buff(108 downto 45) <= can_data;
                 
                 can_bit_counter <= (others => '0');
                 can_tx_state <= can_tx_start_of_frame;
-                --reset stuffing 
-                stuffing_enabled <='1';
+                --reset stuffing (enable is done in SOF)
                 bit_shift_one_bits <= (others => '0');
                 bit_shift_zero_bits  <= (others => '1');
                 crc_rst <= '1';
@@ -157,6 +156,7 @@ begin
                             crc_ce <= '0';
                         when can_tx_start_of_frame =>
                             report "SOF";
+                            stuffing_enabled <='1';
                             can_phy_tx_en_buf <= '1';
                             crc_ce <= '1';
                             --perpare next state
@@ -176,8 +176,8 @@ begin
                             if can_bit_counter = 5 then
                                 can_bit_counter <=(others => '0');
                                 if can_dlc_buf = "0000" then
-                                    -- keep in sync with .. bellow
                                     can_tx_state <= can_tx_crc;
+                                    -- the next bit is going to be the CRC do not update crc
                                     crc_ce <= '0';
                                 else 
                                     can_tx_state <= can_tx_data;
@@ -188,6 +188,7 @@ begin
                             crc_ce <= '1';
                             
                             if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1 then
+                                -- the next bit is going to be the CRC do not update crc
                                 crc_ce <= '0';
                                 can_bit_counter <= (others => '0');
                                 can_tx_state <= can_tx_crc;
@@ -207,7 +208,6 @@ begin
                                 shift_buff(127 downto 126) <= "0" & "1";
                             end if;
                         when can_tx_ack_slot =>
-
                             can_bit_counter <= (others => '0');
                             can_tx_state <= can_tx_ack_delimiter;
                         when can_tx_ack_delimiter => 
@@ -215,8 +215,8 @@ begin
                             can_tx_state <= can_tx_eof;
                             shift_buff(127 downto 121) <= "1111111";
                         when can_tx_eof =>
+                            --disable stuffing for those bits
                             stuffing_enabled <='0';
-                            -- TODO disable stuffing
                             if can_bit_counter = 6 then
                                 can_tx_state <= can_tx_idle;
                                 can_phy_tx_en_buf <= '0';
