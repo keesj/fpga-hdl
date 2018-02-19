@@ -32,6 +32,8 @@ architecture rtl of can_tx is
 	alias  can_eff_buf  : std_logic is can_id_buf(31);
 	alias  can_rtr  : std_logic is can_id_buf(30);
 
+	signal can_valid_has_been_low : std_logic := '1';
+
 	-- State
 	type can_tx_states is (
   		can_tx_idle,
@@ -52,22 +54,31 @@ begin
 	-- status / next state logic
 	status(0) <= '0' when can_tx_state = can_tx_idle else '1';
 
-	count: process(clk)
+	count: process(clk,can_valid)
 	begin
+
+		if falling_edge(can_valid) then
+			report "LOWCAN";
+			can_valid_has_been_low <= '1';
+		end if;
 		if rising_edge(clk) then
+			if can_valid ='1' and can_valid_has_been_low = '1' and can_tx_state = can_tx_idle then
+				report "CANUP";
+				can_valid_has_been_low <= '0';
+				--copy the data to the internal signal
+				can_id_buf <= can_id;
+				can_dlc_buf <= can_dlc;
+				can_data_buf <= can_data;
+				can_tx_state <= can_tx_start_of_frame;
+			end if;
+
 			can_bit_time_counter <= can_bit_time_counter +1;	
 
 			if can_bit_time_counter = 10 then
 				can_bit_time_counter <= (others => '0');
 				case can_tx_state is
 					when can_tx_idle =>
-							if can_valid = '1' then
-								--copy the data to the internal signal
-								can_id_buf <= can_id;
-								can_dlc_buf <= can_dlc;
-								can_data_buf <= can_data;
-								can_tx_state <= can_tx_start_of_frame;
-							end if;
+						report "IDLE";
 					when can_tx_start_of_frame =>
 						report "SOF";
 						can_phy_tx <= '0';
