@@ -128,9 +128,9 @@ begin
 				-- start of frame + id (11 bit) + rtr TODO 31-31 and 30 are overlapping !
 				shift_buff(127 downto 115) <= '0' & can_id(31 downto 21)  & can_id(0);
 				-- 	IDE + reservered + dlc
-				shift_buff(115 downto 110) <= "0" & "0" & can_dlc;
+				shift_buff(114 downto 109) <= "0" & "0" & can_dlc;
 				-- copy data (anyway)
-				shift_buff(109 downto 46) <= can_data;
+				shift_buff(108 downto 45) <= can_data;
 				
 				can_bit_counter <= (others => '0');
 				can_tx_state <= can_tx_start_of_frame;
@@ -151,13 +151,14 @@ begin
 				can_phy_tx <= next_tx_value ;
 				bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & next_tx_value;
 				bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & next_tx_value;
-				shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
+				
 
 				if needs_stuffing = '1' then
 					report "STUFFING";
 					bit_shift_one_bits <= (others => '0');
 					bit_shift_zero_bits  <= (others => '1');
 				else
+					shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
 					can_bit_counter <= can_bit_counter +1; 	
 					crc_clk <= '1';				
 					case can_tx_state is
@@ -168,12 +169,14 @@ begin
 						when can_tx_start_of_frame =>
 							report "SOF";
 							can_phy_tx_en <= '1';
+
+							--perpare next state
 							can_bit_counter <= (others => '0');
 							can_tx_state <= can_tx_arbitration;	
 						when can_tx_arbitration =>
 							report "AR bites";										
-							-- todo check if arbitration applies
 							if can_bit_counter = 12 then
+								--prare next state
 								can_bit_counter <=(others => '0');
 								can_tx_state <= can_tx_control;
 							end if;	
@@ -182,6 +185,7 @@ begin
 							if can_bit_counter = 6 then
 								can_bit_counter <=(others => '0');
 								if can_dlc_buf = "0000" then
+									can_bit_counter <=(others => '0');
 									can_tx_state <= can_tx_crc;
 								else 
 									can_tx_state <= can_tx_data;
