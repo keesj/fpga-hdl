@@ -99,7 +99,7 @@ begin
 							when "0000" =>
 								can_tx_state <= can_tx_crc;
 							when others =>
-								can_bit_count(3 downto 0) <= unsigned(can_dlc_buf);
+								can_bit_count <= unsigned(can_dlc_buf) * 8;
 								shift_buff <= can_data_buf;
 								can_tx_state <= can_tx_data;
 							end case;
