@@ -31,18 +31,20 @@ architecture rtl of can_tx is
 	-- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
 	alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
 	alias  can_eff_buf  : std_logic is can_id_buf(31);
-	alias  can_ert_buf  : std_logic is can_id_buf(30);
+	alias  can_rtr  : std_logic is can_id_buf(30);
 
 	-- State
 	type can_tx_states is (
   		can_tx_idle,
-  		can_tx_start_of_frame,
-		can_tx_arbitration_field,
-  		can_tx_control_field,
-  		can_tx_crc_field,
-		can_tx_ack_field,
-		can_tx_end_of_frame_field,
-		can_tx_interface_field
+  		can_tx_start_of_frame, -- 1 bit
+		can_tx_arbitration,    -- 12 bit = 11 bit id + req remote
+		can_tx_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
+		can_tx_data,           -- 0-64 bits (0 + 8 * dlc)
+  		can_tx_crc,            -- 15 bits 
+		can_tx_crc_field,      -- 1 bit 1
+		can_tx_ack_slot,       -- 1 bit
+		can_tx_ack_delimiter,  -- 1 bit 
+		can_tx_eof             -- 7 bit
 	);
 
 	signal can_tx_state: can_tx_states := can_tx_idle;
@@ -63,25 +65,37 @@ begin
 								can_dlc_buf <= can_dlc;
 								can_data_buf <= can_data;
 								can_tx_state <= can_tx_start_of_frame;
-								report "HAHA";
 							end if;
 					when can_tx_start_of_frame =>
 						report "SOF";
-						can_tx_state <= can_tx_arbitration_field;	
 						can_phy_tx <= '0';
 						can_phy_tx_en  <='1';
-						can_bit_count <= X"0b";
-						shift_buff(63 downto 53) <= can_id_buf(31 downto 21) ;
-					when can_tx_arbitration_field =>
-						report "ARB";
+
+						-- and prepare next fields
+						can_bit_count <= X"0c";
+						shift_buff(63 downto 52) <= can_id_buf(31 downto 21)  & can_rtr;
+						can_tx_state <= can_tx_arbitration;	
+					when can_tx_arbitration =>
+
+						can_phy_tx <= shift_buff(63);						
 					    can_bit_count <= can_bit_count -1;
 						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
-						can_phy_tx <= shift_buff(63);
-						can_phy_tx_en  <='1';						
+						
+						if can_bit_count = "0000000" then
+							can_tx_state <= can_tx_control;
+							can_bit_count <= X"06";
+							shift_buff(63 downto 58) <= "0" & "0" & can_dlc_buf;
+						end if;	
+					when can_tx_control =>
+					
+						can_phy_tx <= shift_buff(63);						
+						can_bit_count <= can_bit_count -1;
+						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
+						
 						if can_bit_count = "0000000" then
 							can_tx_state <= can_tx_idle;
 							can_phy_tx_en  <= '0';
-						end if;	
+						end if;							
 					when others =>
 						report "OTHER";
 						can_tx_state <= can_tx_idle;
