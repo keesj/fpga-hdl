@@ -105,6 +105,18 @@ begin
     can_valid <= '0';
     wait until status(0) ='0';
 
+    --https://news.voyage.auto/an-introduction-to-the-can-bus-how-to-programmatically-control-a-car-f1b18be4f377
+    can_id(31 downto 21)  <= "00000010100";
+    can_id(0) <= '0';
+    can_dlc <= "1000";
+    can_data  <= X"016f707972696768" ;
+    can_valid <= '1';
+    wait until rising_edge(clk);
+    wait until falling_edge(clk);
+    can_valid <= '0';
+    wait until status(0) ='0';
+    
+    
     --based on 
     --https://github.com/EliasOenal/sigrok-dumps/blob/master/can/arbitrary_traffic/bsd_license_can_standard_500k.logicdata
     can_id(31 downto 21)  <= "0000" & "0001101";
