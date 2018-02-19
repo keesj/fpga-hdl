@@ -100,7 +100,7 @@ begin
 	needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
 	stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 	next_tx_value <= stuffing_value when needs_stuffing = '1' else shift_buff(127);
-
+	crc_din <= next_tx_value;
 	
 	
 	count: process(clk,can_valid)
@@ -109,6 +109,9 @@ begin
 		if falling_edge(can_valid) then
 			report "LOWCAN";
 			can_valid_has_been_low <= '1';
+		end if;
+		if falling_edge(clk) then
+			crc_clk <= '0';
 		end if;
 
 		if rising_edge(clk) then
@@ -135,6 +138,7 @@ begin
 				stuffing_enabled <='1';
 				bit_shift_one_bits <= (others => '0');
 				bit_shift_zero_bits  <= (others => '1');
+				crc_clk <= '1';
 				crc_rst <= '0';
 			end if;
 
@@ -154,7 +158,8 @@ begin
 					bit_shift_one_bits <= (others => '0');
 					bit_shift_zero_bits  <= (others => '1');
 				else
-					can_bit_counter <= can_bit_counter +1; 					
+					can_bit_counter <= can_bit_counter +1; 	
+					crc_clk <= '1';				
 					case can_tx_state is
 						when can_tx_idle =>
 							--report "IDLE";
