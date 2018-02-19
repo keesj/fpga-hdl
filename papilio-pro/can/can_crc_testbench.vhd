@@ -45,7 +45,7 @@ architecture behavior of can_crc_testbench is
   tb : process
   begin
     wait for 10 ns;
-	 rst <= '1';
+   rst <= '1';   
 	 wait for wait_time;
 	 rst <= '0';
 	 report "crc value ";
@@ -53,8 +53,10 @@ architecture behavior of can_crc_testbench is
 	 din <= '1';
 	 ce <='1';
 	 wait for wait_time;
-	 ce <= '0';
-	 
+   ce <= '0';
+   wait for wait_time;
+   din <= '1';
+	 ce <='1';
 	 wait;
   end process tb;
 end;

@@ -66,7 +66,6 @@ architecture rtl of can_tx is
 	signal next_tx_value : std_logic := '0';
 	signal stuffing_enabled : std_logic := '1';
 
-	signal crc_clk : std_logic := '0';
 	signal crc_din : std_logic := '0';
 	signal crc_ce : std_logic := '0';
 	signal crc_rst : std_logic := '0';
@@ -84,7 +83,7 @@ architecture rtl of can_tx is
 begin
 
 	crc: can_crc port map(
-		clk => crc_clk,
+		clk => clk,
 		din => crc_din,
 		ce => crc_ce,
 		rst => crc_rst,
@@ -92,7 +91,7 @@ begin
 	  );
 
 	crc_din <= shift_buff(127);
-	crc_ce <= '1';
+	crc_ce <= '0';
 	crc_rst <='1';
 
 	-- status / next state logic
@@ -111,7 +110,8 @@ begin
 			can_valid_has_been_low <= '1';
 		end if;
 		if falling_edge(clk) then
-			crc_clk <= '0';
+			report "PUSH DOWN CE";
+			crc_ce <= '0';
 		end if;
 
 		if rising_edge(clk) then
@@ -138,12 +138,11 @@ begin
 				stuffing_enabled <='1';
 				bit_shift_one_bits <= (others => '0');
 				bit_shift_zero_bits  <= (others => '1');
-				crc_clk <= '1';
 				crc_rst <= '1';	
-				crc_ce  <= '0';
 			end if;
 
 			can_bit_time_counter <= can_bit_time_counter +1;	
+
 
 			if can_bit_time_counter = 10 then
 
@@ -153,7 +152,6 @@ begin
 				bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & next_tx_value;
 				bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & next_tx_value;
 				
-
 				if needs_stuffing = '1' then
 					report "STUFFING";
 					bit_shift_one_bits <= (others => '0');
@@ -162,7 +160,6 @@ begin
 					shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
 					can_bit_counter <= can_bit_counter +1; 	
 					crc_rst <= '0';	
-					crc_clk <= '1';				
 					case can_tx_state is
 						when can_tx_idle =>
 							--report "IDLE";
