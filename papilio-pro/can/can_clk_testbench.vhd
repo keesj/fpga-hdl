@@ -9,8 +9,7 @@ architecture behavior of can_clk_testbench is
 
   -- Component declaration
   component can_clk
-  port(
-        clk_in : in std_logic;
+  port( clk_in : in std_logic;
         clk_div : in std_logic;
         sync : in std_logic;
         sample_clk : out std_logic

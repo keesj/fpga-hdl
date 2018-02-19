@@ -9,12 +9,12 @@ architecture behavior of can_phy_testbench is
     -- component declaration for the unit under test (uut)
     component can_phy
     port(
-         tx : in  std_logic;
-         tx_en : in  std_logic;
-         rx : out  std_logic;
-      can_collision : out  std_logic;
-         can_l : inout  std_logic;
-         can_h : inout  std_logic
+         tx            : in  std_logic;
+         tx_en         : in  std_logic;
+         rx            : out  std_logic;
+         can_collision : out  std_logic;
+         can_l         : inout  std_logic;
+         can_h         : inout  std_logic
         );
     end component;
     

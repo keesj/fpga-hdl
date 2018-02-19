@@ -9,14 +9,12 @@ architecture behavior of can_tx_testbench is
 
     component can_tx
     port (  clk         : in  std_logic;            
-    
             can_id      : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
             can_dlc     : in  std_logic_vector (3 downto 0);
             can_data    : in  std_logic_vector (63 downto 0);
             can_valid   : in  std_logic;
             can_start   : in  std_logic;
             status      : out std_logic_vector (31 downto 0);
-
             can_phy_tx     : out  std_logic;
             can_phy_tx_en  : out  std_logic;
             can_phy_rx     : in std_logic

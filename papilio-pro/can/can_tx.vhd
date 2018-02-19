@@ -3,14 +3,13 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity can_tx is
-    port (  clk         : in  std_logic;            
-    
-            can_id      : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
-            can_dlc     : in  std_logic_vector (3 downto 0);
-            can_data    : in  std_logic_vector (63 downto 0);
-            can_valid   : in  std_logic;
-            can_start   : in  std_logic;
-            status      : out std_logic_vector (31 downto 0);
+    port (  clk            : in  std_logic;            
+            can_id         : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
+            can_dlc        : in  std_logic_vector (3 downto 0);
+            can_data       : in  std_logic_vector (63 downto 0);
+            can_valid      : in  std_logic;
+            can_start      : in  std_logic;
+            status         : out std_logic_vector (31 downto 0);
             can_phy_tx     : out  std_logic;
             can_phy_tx_en  : out  std_logic;
             can_phy_rx     : in std_logic
@@ -49,13 +48,13 @@ architecture rtl of can_tx is
     type can_tx_states is (
           can_tx_idle,
           can_tx_start_of_frame, -- 1 bit
-        can_tx_arbitration,    -- 12 bit = 11 bit id + req remote
-        can_tx_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
-        can_tx_data,           -- 0-64 bits (0 + 8 * dlc)
+          can_tx_arbitration,    -- 12 bit = 11 bit id + req remote
+          can_tx_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
+          can_tx_data,           -- 0-64 bits (0 + 8 * dlc)
           can_tx_crc,            -- 15 bits + 1 bit crc delimiter
-        can_tx_ack_slot,       -- 1 bit
-        can_tx_ack_delimiter,  -- 1 bit 
-        can_tx_eof             -- 7 bit
+          can_tx_ack_slot,       -- 1 bit
+          can_tx_ack_delimiter,  -- 1 bit 
+          can_tx_eof             -- 7 bit
     );
 
     signal can_tx_state: can_tx_states := can_tx_idle;
