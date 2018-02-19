@@ -17,9 +17,8 @@ entity can_crc is
 end can_crc;
 
 architecture rtl of can_crc is
-	signal crc_next : std_logic_vector (14 downto 0);
-	signal crc_val : std_logic_vector (14 downto 0);
-	signal crc_ce_was_low : std_logic := '1';
+	signal crc_next : std_logic_vector (14 downto 0) := (others => '0');
+	signal crc_val : std_logic_vector (14 downto 0) := (others => '0');
 begin
 	crc <= crc_val;
 
@@ -42,20 +41,14 @@ begin
 
 	count: process(clk)
 	begin
-		if rising_edge(clk) then
+		if falling_edge(clk) then
 			if rst = '1' then
 				report "CRC RESET";
 				 crc_val <= (others => '0');
-				 crc_ce_was_low <= '1';
 			else
-				if ce = '1' and crc_ce_was_low ='1' then
+				if ce = '1' then
 					report "CRC NEXT";
-					crc_ce_was_low <='0';
 					crc_val <= crc_next;
-				end if;
-
-				if ce ='0' and crc_ce_was_low ='0' then
-					crc_ce_was_low <= '1';
 				end if;
 			end if;
 		end if;

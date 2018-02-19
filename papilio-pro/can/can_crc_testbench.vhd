@@ -12,9 +12,9 @@ architecture behavior of can_crc_testbench is
   component can_crc
    port ( clk : in  std_logic;
 			  din : in  std_logic;
-           ce : in  std_logic;
+        ce : in  std_logic;
 			  rst : in std_logic;
-           crc : out  std_logic_vector(14 downto 0)
+        crc : out  std_logic_vector(14 downto 0)
     );
   end component;
   
@@ -25,7 +25,7 @@ architecture behavior of can_crc_testbench is
   signal rst : std_logic;
   signal crc: std_logic_vector(14 downto 0);
   constant clk_period : time := 10 ns;
-  constant wait_time : time := 20 ns;
+
  begin
 
      uut: can_crc port map(
@@ -34,7 +34,7 @@ architecture behavior of can_crc_testbench is
 			ce => ce,
 			rst => rst,
 			crc => crc
-          );
+     );
 
    clk_process :process
    begin
@@ -49,23 +49,19 @@ architecture behavior of can_crc_testbench is
   begin
     wait for 10 ns;
 
+    wait until falling_edge(clk);
     rst <= '1';   
-    wait for wait_time;
+    wait until rising_edge(clk);
+    wait until falling_edge(clk);
     rst <= '0';
 
     for i in 0 to 7 loop
       din <= data(6);
       ce <='1';
-      wait for wait_time;
-
-
-      ce <= '0';
-      wait for wait_time;
+      wait until rising_edge(clk);
+      wait until falling_edge(clk);
+      ce <='0';
       report "DATA " &  std_logic'image(din);
-      report "CRC" &  std_logic'image(crc(0)) &std_logic'image(crc(1)) ;
-      write(l, String'("DATA"));
-      write(l, 16);
-      writeline (output, l);
       data <= data(6 downto 0) & '0';
     end loop;
     report "DONE";

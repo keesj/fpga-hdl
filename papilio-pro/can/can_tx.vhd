@@ -104,16 +104,13 @@ begin
 	
 	count: process(clk,can_valid)
 	begin
-
-		if falling_edge(can_valid) then
-			report "LOWCAN";
-			can_valid_has_been_low <= '1';
-		end if;
-		if falling_edge(clk) then
-			crc_ce <= '0';
-		end if;
-
 		if rising_edge(clk) then
+			crc_ce <= '0';
+			
+			if can_valid ='0' then
+				can_valid_has_been_low <= '1';
+			end if;
+
 			if can_valid ='1' and can_valid_has_been_low = '1' and can_tx_state = can_tx_idle then
 				report "CANUP";
 				can_valid_has_been_low <= '0';
@@ -202,7 +199,7 @@ begin
 								crc_ce <= '0';
 							end if;											
 						when can_tx_crc =>
-							report "CRC bites";							
+							report "CRC bit" & std_logic'image(next_tx_value);							
 							if can_bit_counter = "0000" then
 								--copy crc 
 								can_crc_buf <= crc_data;
