@@ -23,6 +23,8 @@ architecture rtl of can_tx is
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
 
+	signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
+	
 	signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
 	signal can_bit_time_counter : unsigned (7 downto 0) := (others => '0');		
 	signal can_bit_counter : unsigned (7 downto 0) := (others => '0');		
@@ -63,7 +65,35 @@ architecture rtl of can_tx is
 	signal stuffing_value : std_logic := '0';
 	signal next_tx_value : std_logic := '0';
 	signal stuffing_enabled : std_logic := '1';
+
+	signal crc_clk : std_logic := '0';
+	signal crc_din : std_logic := '0';
+	signal crc_ce : std_logic := '0';
+	signal crc_rst : std_logic := '0';
+	signal crc_data : std_logic_vector(14 downto 0);
+	
+	component can_crc 
+		port ( 
+				clk : in  std_logic;
+				din : in  std_logic;
+				ce : in std_logic;
+				   rst : in std_logic;
+				   crc : out  std_logic_vector(14 downto 0)
+		);
+	end component;
 begin
+
+	crc: can_crc port map(
+		clk => crc_clk,
+		din => crc_din,
+		ce => crc_ce,
+		rst => crc_rst,
+		crc => crc_data
+	  );
+
+	crc_din <= shift_buff(127);
+	crc_ce <= '1';
+	crc_rst <='1';
 
 	-- status / next state logic
 	status(0) <= '0' when can_tx_state = can_tx_idle else '1';	
@@ -105,6 +135,7 @@ begin
 				stuffing_enabled <='1';
 				bit_shift_one_bits <= (others => '0');
 				bit_shift_zero_bits  <= (others => '1');
+				crc_rst <= '0';
 			end if;
 
 			can_bit_time_counter <= can_bit_time_counter +1;	
@@ -123,8 +154,7 @@ begin
 					bit_shift_one_bits <= (others => '0');
 					bit_shift_zero_bits  <= (others => '1');
 				else
-					can_bit_counter <= can_bit_counter +1; 
-
+					can_bit_counter <= can_bit_counter +1; 					
 					case can_tx_state is
 						when can_tx_idle =>
 							--report "IDLE";
@@ -157,10 +187,11 @@ begin
 							if can_bit_counter = (8 * unsigned(can_dlc_buf) -1) then
 								can_bit_counter <= (others => '0');
 								can_tx_state <= can_tx_crc;						
-							end if;													
+							end if;											
 						when can_tx_crc =>
 							report "CRC bites";					
-							can_tx_state <= can_tx_idle;						
+							can_tx_state <= can_tx_idle;
+							crc_rst <= '1';						
 						when others =>
 							report "OTHER";
 							can_tx_state <= can_tx_idle;
