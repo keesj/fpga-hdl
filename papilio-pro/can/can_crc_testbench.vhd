@@ -23,7 +23,7 @@ ARCHITECTURE behavior OF can_crc_testbench IS
   signal rst : STD_LOGIC;
   signal crc: STD_LOGIC_VECTOR(14 downto 0);
   constant clk_period : time := 10 ns;
-  constant wait_time : time := 30ns;
+  constant wait_time : time := 30 ns;
  BEGIN
 
      uut: can_crc PORT MAP(
