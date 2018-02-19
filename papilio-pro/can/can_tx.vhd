@@ -23,9 +23,9 @@ architecture rtl of can_tx is
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
 
-	signal shift_buff : std_logic_vector (63 downto 0) := (others => '0');
+	signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
 	signal can_bit_time_counter : unsigned (7 downto 0) := (others => '0');		
-	signal can_bit_count : unsigned (7 downto 0) := (others => '0');		
+	signal can_bit_counter : unsigned (7 downto 0) := (others => '0');		
 
 	-- two buffers to keep the last bits sent
 	--https://en.wikipedia.org/wiki/CAN_bus#Bit_stuffing
@@ -34,7 +34,7 @@ architecture rtl of can_tx is
 	--But not in the CRC delimiter, ACK, and end of frame fields.
 	signal bit_shift_one_bits : std_logic_vector(4 downto 0) := (others =>'0');
 	signal bit_shift_zero_bits : std_logic_vector(4 downto 0) := (others => '1');
-	alias can_logic_bit_next : std_logic is shift_buff(63);
+	alias can_logic_bit_next : std_logic is shift_buff(127);
 
 	-- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
 	alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
@@ -43,6 +43,7 @@ architecture rtl of can_tx is
 
 	signal can_valid_has_been_low : std_logic := '1';
 
+	
 	-- State
 	type can_tx_states is (
   		can_tx_idle,
@@ -60,12 +61,17 @@ architecture rtl of can_tx is
 	signal can_tx_state: can_tx_states := can_tx_idle;
 	signal needs_stuffing : std_logic := '0';
 	signal stuffing_value : std_logic := '0';
+	signal next_tx_value : std_logic := '0';
+	signal stuffing_enabled : std_logic := '1';
 begin
 
 	-- status / next state logic
-	status(0) <= '0' when can_tx_state = can_tx_idle else '1';
-	needs_stuffing <= '1' when  bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000" else '0';
+	status(0) <= '0' when can_tx_state = can_tx_idle else '1';	
+	needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
 	stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
+	next_tx_value <= stuffing_value when needs_stuffing = '1' else shift_buff(127);
+
+	
 	
 	count: process(clk,can_valid)
 	begin
@@ -79,14 +85,24 @@ begin
 			if can_valid ='1' and can_valid_has_been_low = '1' and can_tx_state = can_tx_idle then
 				report "CANUP";
 				can_valid_has_been_low <= '0';
-				--copy the data to the internal signal
+				--copy the data to the internal buffers
 				can_id_buf <= can_id;
 				can_dlc_buf <= can_dlc;
 				can_data_buf <= can_data;
+				
+				-- and prepare next fields
+				-- 12 bits id + rtr (retry?)						
+				-- start of frame + id (11 bit) + rtr TODO 31-31 and 30 are overlapping !
+				shift_buff(127 downto 115) <= '0' & can_id(31 downto 21)  & can_id(0);
+				-- 	IDE + reservered + dlc
+				shift_buff(115 downto 110) <= "0" & "0" & can_dlc;
+				-- copy data (anyway)
+				shift_buff(109 downto 46) <= can_data;
+				
+				can_bit_counter <= (others => '0');
 				can_tx_state <= can_tx_start_of_frame;
-
-				--reset bit counters
-
+				--reset stuffing 
+				stuffing_enabled <='1';
 				bit_shift_one_bits <= (others => '0');
 				bit_shift_zero_bits  <= (others => '1');
 			end if;
@@ -94,90 +110,62 @@ begin
 			can_bit_time_counter <= can_bit_time_counter +1;	
 
 			if can_bit_time_counter = 10 then
+
 				can_bit_time_counter <= (others => '0');
-				case can_tx_state is
-					when can_tx_idle =>
-						report "IDLE";
-					when can_tx_start_of_frame =>
-						report "SOF";
-						can_phy_tx <= '0';
-						can_phy_tx_en  <='1';
 
-						bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & '0';
-						bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & '0';
-						-- and prepare next fields
-						-- 12 bits id + rtr (retry?)						
-						can_bit_count <= X"0c";
-						shift_buff(63 downto 52) <= can_id_buf(31 downto 21)  & can_rtr;
-						can_tx_state <= can_tx_arbitration;	
-					when can_tx_arbitration =>
-						report "AR bites";	
-						if needs_stuffing = '1' then
-							report "STUFFING";
-							can_phy_tx <= stuffing_value;
-							--and reset
-							bit_shift_one_bits <= (others => '0');
-							bit_shift_zero_bits <= (others => '1');
-						else
-							can_phy_tx <= can_logic_bit_next;
-							shift_buff <= shift_buff(62 downto 0) & can_logic_bit_next;
-							can_bit_count <= can_bit_count -1;
-							bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & shift_buff(63);
-							bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & shift_buff(63);	
-						end if;
+				can_phy_tx <= next_tx_value ;
+				bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & next_tx_value;
+				bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & next_tx_value;
+				shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
 
-						-- todo check if arbitration applies
-						if can_bit_count = "0000001" then
-							--prepare next step
-							can_tx_state <= can_tx_control;
-							can_bit_count <= X"06";
-							-- id-ext + 0 + 4 bit dlc currently only supporting 
-							shift_buff(63 downto 58) <= "0" & "0" & can_dlc_buf;
-						end if;	
-					when can_tx_control =>
-						report "Control bites";	
-						if needs_stuffing = '1' then
-							report "STUFFING";
-							can_phy_tx <= stuffing_value;
-							--and reset
-							bit_shift_one_bits <= (others => '0');
-							bit_shift_zero_bits <= (others => '1');
-						else
-							can_phy_tx <= can_logic_bit_next;						
-							can_bit_count <= can_bit_count -1;
-							shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
+				if needs_stuffing = '1' then
+					report "STUFFING";
+					bit_shift_one_bits <= (others => '0');
+					bit_shift_zero_bits  <= (others => '1');
+				else
+					can_bit_counter <= can_bit_counter +1; 
 
-							bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & shift_buff(63);
-							bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & shift_buff(63);	
-						end if;						
-
-						
-
-						if can_bit_count = "0000001" then
-							case can_dlc_buf is
-							when "0000" =>
-								can_tx_state <= can_tx_crc;
-							when others =>
-								can_bit_count <= unsigned(can_dlc_buf) * 8;
-								shift_buff <= can_data_buf;
-								can_tx_state <= can_tx_data;
-							end case;
-						end if;	
-					when can_tx_data =>
-						report "Data bites";	
-						can_phy_tx <= shift_buff(63);						
-						can_bit_count <= can_bit_count -1;
-						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);						
-						if can_bit_count = "0000001" then
-							can_tx_state <= can_tx_crc;						
-						end if;													
-					when can_tx_crc =>
-						report "CRC bites";					
-						can_tx_state <= can_tx_idle;						
-					when others =>
-						report "OTHER";
-						can_tx_state <= can_tx_idle;
-				end case;
+					case can_tx_state is
+						when can_tx_idle =>
+							--report "IDLE";
+							can_phy_tx_en <= '0';	
+							stuffing_enabled <='0';										
+						when can_tx_start_of_frame =>
+							report "SOF";
+							can_phy_tx_en <= '1';
+							can_bit_counter <= (others => '0');
+							can_tx_state <= can_tx_arbitration;	
+						when can_tx_arbitration =>
+							report "AR bites";										
+							-- todo check if arbitration applies
+							if can_bit_counter = 12 then
+								can_bit_counter <=(others => '0');
+								can_tx_state <= can_tx_control;
+							end if;	
+						when can_tx_control =>
+							report "Control bites";	
+							if can_bit_counter = 6 then
+								can_bit_counter <=(others => '0');
+								if can_dlc_buf = "0000" then
+									can_tx_state <= can_tx_crc;
+								else 
+									can_tx_state <= can_tx_data;
+								end if;
+							end if;	
+						when can_tx_data =>
+							report "Data bites";
+							if can_bit_counter = (8 * unsigned(can_dlc_buf) -1) then
+								can_bit_counter <= (others => '0');
+								can_tx_state <= can_tx_crc;						
+							end if;													
+						when can_tx_crc =>
+							report "CRC bites";					
+							can_tx_state <= can_tx_idle;						
+						when others =>
+							report "OTHER";
+							can_tx_state <= can_tx_idle;
+					end case;
+				end if;
 			end if;
 		end if;
 	end process;

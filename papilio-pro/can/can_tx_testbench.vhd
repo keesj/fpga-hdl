@@ -66,7 +66,7 @@ begin
     -- add user defined stimulus here
 
     --wait until status(0) = '0';
-    can_id  <= "11001101000000001111111100000000";
+    can_id  <= "11001101000" & "000001111111100000000";
     can_dlc <= "0000";
     can_data  <= X"1122334455667788" ;
     can_valid <= '1';
@@ -84,7 +84,7 @@ begin
     can_valid <= '0';
     wait for 1 ns;
     can_id  <= "00000101000000001111111100000000";
-    can_dlc <= "0011";
+    can_dlc <= "0001";
     can_data  <= X"1122334455667788" ;
     can_valid <= '1';
     wait until status(0) ='0';
@@ -92,7 +92,7 @@ begin
     can_valid <= '0';
     wait for 1 ns;
     can_id  <= "00000100000000001111111100000000";
-    can_dlc <= "0011";
+    can_dlc <= "0010";
     can_data  <= X"1122334455667788" ;
     can_valid <= '1';
     wait; -- will wait forever
