@@ -110,7 +110,6 @@ begin
 			can_valid_has_been_low <= '1';
 		end if;
 		if falling_edge(clk) then
-			report "PUSH DOWN CE";
 			crc_ce <= '0';
 		end if;
 

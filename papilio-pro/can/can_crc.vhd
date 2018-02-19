@@ -54,11 +54,7 @@ begin
 					crc_val <= crc_next;
 				end if;
 
-				if ce = '1' then
-					report "CRC PREVENT DUAL";
-				end if;
-				if ce ='0' then
-					report "CRC WAS LOW";
+				if ce ='0' and crc_ce_was_low ='0' then
 					crc_ce_was_low <= '1';
 				end if;
 			end if;
