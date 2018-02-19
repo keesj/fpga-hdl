@@ -131,14 +131,14 @@ begin
                 can_data_buf <= can_data;
                 
                 -- and prepare next fields
-                -- 12 bits id + rtr 
-                -- start of frame + id (11 bit) + rtr 
+                -- 13 bits  <= start of frame + id (11 bit) + rtr 
                 shift_buff(127 downto 115) <= '0' & can_id(31 downto 21)  & can_id(0);
-                -- IDE + reservered + dlc
+                -- 6 bits <= IDE + reservered + dlc
                 shift_buff(114 downto 109) <= "0" & "0" & can_dlc;
-                -- copy all data
+                -- 64 bits data (we always copy)
                 shift_buff(108 downto 45) <= can_data;
                 
+                -- We probably 
                 can_bit_counter <= (others => '0');
                 can_tx_state <= can_tx_start_of_frame;
                 --reset stuffing (enable is done in SOF)
