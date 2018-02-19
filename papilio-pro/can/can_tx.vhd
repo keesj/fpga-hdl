@@ -81,7 +81,7 @@ begin
 						can_bit_count <= can_bit_count -1;
 						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
 						-- todo check if arbitration applies
-						if can_bit_count = "0000000" then
+						if can_bit_count = "0000001" then
 							--prepare next step
 							can_tx_state <= can_tx_control;
 							can_bit_count <= X"06";
@@ -94,7 +94,7 @@ begin
 						can_bit_count <= can_bit_count -1;
 						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
 						
-						if can_bit_count = "0000000" then
+						if can_bit_count = "0000001" then
 							case can_dlc_buf is
 							when "0000" =>
 								can_tx_state <= can_tx_crc;
@@ -108,15 +108,13 @@ begin
 						report "Data bites";	
 						can_phy_tx <= shift_buff(63);						
 						can_bit_count <= can_bit_count -1;
-						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
-						
-						if can_bit_count = "0000000" then
+						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);						
+						if can_bit_count = "0000001" then
 							can_tx_state <= can_tx_crc;						
 						end if;													
 					when can_tx_crc =>
 						report "CRC bites";					
-						can_tx_state <= can_tx_idle;	
-						
+						can_tx_state <= can_tx_idle;						
 					when others =>
 						report "OTHER";
 						can_tx_state <= can_tx_idle;
