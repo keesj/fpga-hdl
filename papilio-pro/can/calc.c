@@ -30,7 +30,7 @@ int main()
     for (unsigned int x = 0 ; x < 256 ; x++){
 	    crc = 0;
 	    crc = can_crc_next(crc, x);
-    	    printf("%02X -> %04X\n", x , crc);
+    	    printf("%02X %04X\n", x , crc);
     }
 
 }

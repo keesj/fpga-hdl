@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use std.textio.all;
+use ieee.std_logic_textio.all;
 
 entity can_crc_testbench is
 end can_crc_testbench;
@@ -25,7 +26,7 @@ architecture behavior of can_crc_testbench is
   signal rst : std_logic;
   signal crc: std_logic_vector(14 downto 0);
   constant clk_period : time := 10 ns;
-
+  
  begin
 
      uut: can_crc port map(
@@ -44,27 +45,40 @@ architecture behavior of can_crc_testbench is
         wait for clk_period/2;  --for next 0.5 ns signal is '1'.
    end process;
   
+
   tb : process is
+    
+
+    file testbench_data : text open READ_MODE is "can_crc_testbench_data.hex";
     variable l : line;
+    variable data_in : std_logic_vector(7 downto 0);
+    variable crc_in : std_logic_vector(14 downto 0);
   begin
     wait for 10 ns;
 
-    wait until falling_edge(clk);
-    rst <= '1';   
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    rst <= '0';
-
-    for i in 0 to 7 loop
-      din <= data(6);
-      ce <='1';
+    while not endfile(testbench_data) loop
+      readline(testbench_data,l);
+      hread(l, data_in);
+      hread(l,crc_in);
+      data <= data_in;
+      wait until falling_edge(clk);
+      rst <= '1';   
       wait until rising_edge(clk);
       wait until falling_edge(clk);
-      ce <='0';
-      report "DATA " &  std_logic'image(din);
-      data <= data(6 downto 0) & '0';
+      rst <= '0';
+
+      for i in 0 to 7 loop
+        din <= data(6);
+        ce <='1';
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+        ce <='0';
+        report "DATA " &  std_logic'image(din);
+        data <= data(6 downto 0) & '0';
+      end loop;
+      assert crc = crc_in report "CRC mismatch" severity error;
+      report "DONE";
     end loop;
-    report "DONE";
     wait;
   end process tb;
 end;
