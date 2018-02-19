@@ -6,16 +6,16 @@ use IEEE.NUMERIC_STD.ALL;
 -- based on 
 -- http://srecord.sourceforge.net/crc16-ccitt.html
 -- and https://www.can-cia.org/can-knowledge/can/crc/
-entity can_clk is
+entity can_crc is
     Port ( clk : in  STD_LOGIC;
            reset : in STD_LOGIC;
            ce : in  STD_LOGIC;
            din : in  STD_LOGIC;
            crc : out  STD_LOGIC_VECTOR(14 downto 0)
     );
-end can_clk;
+end can_crc;
 
-architecture RTL of can_clk is
+architecture RTL of can_crc is
 	signal crc_val : STD_LOGIC_VECTOR (14 downto 0);
 begin
 	crc <= crc_val;
@@ -25,8 +25,7 @@ begin
  			crc_val <= (others => '1');		
 		elsif rising_edge(ce) then
 			if rising_edge(clk) then
-       				-- x15 + x14 + x10 + x8 + x7 +x4 +x3 + x0 
-                                -- needs fixing to .. make it work !
+       				-- x15 + x14 + x10 + x8 + x7 +x4 +x3 + 1 
 				crc_val(0) <= crc_val(14) xor din;
 				crc_val(1) <= crc_val(0);
 				crc_val(2) <= crc_val(1);
