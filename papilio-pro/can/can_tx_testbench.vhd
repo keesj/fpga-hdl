@@ -81,6 +81,20 @@ begin
     can_valid <= '1';
     wait until status(0) ='0';
     report "3";
+    can_valid <= '0';
+    wait for 1 ns;
+    can_id  <= "00000101000000001111111100000000";
+    can_dlc <= "0011";
+    can_data  <= X"1122334455667788" ;
+    can_valid <= '1';
+    wait until status(0) ='0';
+    report "4";
+    can_valid <= '0';
+    wait for 1 ns;
+    can_id  <= "00000100000000001111111100000000";
+    can_dlc <= "0011";
+    can_data  <= X"1122334455667788" ;
+    can_valid <= '1';
     wait; -- will wait forever
   end process tb; 
 end;
