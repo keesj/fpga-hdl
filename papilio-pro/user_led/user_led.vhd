@@ -3,7 +3,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 
 entity user_led is
-    Port (
+    port (
            led : out  STD_LOGIC);
 end user_led;
 

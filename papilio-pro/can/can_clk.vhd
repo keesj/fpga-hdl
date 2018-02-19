@@ -1,21 +1,21 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 
 entity can_clk is
-    Port ( clk_in : in  STD_LOGIC;
-           clk_div : in  STD_LOGIC;
-           sync : in  STD_LOGIC;
-           sample_clk : out  STD_LOGIC);
+    port ( clk_in : in  std_logic;
+           clk_div : in  std_logic;
+           sync : in  std_logic;
+           sample_clk : out  std_logic);
 end can_clk;
 
-architecture RTL of can_clk is
-	signal counter : SIGNED (7 downto 0) := (others => '0');		
+architecture rtl of can_clk is
+	signal counter : signed (7 downto 0) := (others => '0');		
 begin
-	--input clock is 100 Mhz
-	--can bit time if 500.000 hence we want 10 faster
-	--500 Khz
+	-- Input clock is 100 mhz
+	-- Can bit time if 500.000 hence we want 10 faster
+	-- 500 khz
 	count: process(clk_in,sync)
 	begin
 		if rising_edge(clk_in) then
@@ -27,5 +27,5 @@ begin
 		end if;
 	end process;
 	
-end RTL;
+end rtl;
 

@@ -1,22 +1,22 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 
 -- based on 
 -- http://srecord.sourceforge.net/crc16-ccitt.html
 -- and https://www.can-cia.org/can-knowledge/can/crc/
 entity can_crc is
-    Port ( clk : in  STD_LOGIC;
-			  din : in  STD_LOGIC;
-           ce : in  STD_LOGIC;
-			  rst : in STD_LOGIC;
-           crc : out  STD_LOGIC_VECTOR(14 downto 0)
+    port ( clk : in  std_logic;
+			  din : in  std_logic;
+           ce : in  std_logic;
+			  rst : in std_logic;
+           crc : out  std_logic_vector(14 downto 0)
     );
 end can_crc;
 
-architecture RTL of can_crc is
-	signal crc_val : STD_LOGIC_VECTOR (14 downto 0);
+architecture rtl of can_crc is
+	signal crc_val : std_logic_vector (14 downto 0);
 begin
 	crc <= crc_val;
 	count: process(clk,rst,ce)
@@ -44,5 +44,5 @@ begin
 			end if;
 		end if;
 	end process;
-end RTL;
+end rtl;
 

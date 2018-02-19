@@ -1,20 +1,20 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
 
 entity can_tx is
-    Port ( clk      : in  STD_LOGIC;            
-           can_id   : in  STD_LOGIC_VECTOR (31 downto 0);-- 32 bit CAN_ID + EFF/RTR/ERR flags 
-		     can_dlc  : in STD_LOGIC_VECTOR (3 downto 0);
-		     can_data : in STD_LOGIC_VECTOR (63 downto 0);
-		     can_valid: in  STD_LOGIC;
-           status   : out  STD_LOGIC_VECTOR (32 downto 0));
+    port ( clk      : in  std_logic;            
+            can_id   : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
+		    can_dlc  : in std_logic_vector (3 downto 0);
+		    can_data : in std_logic_vector (63 downto 0);
+		    can_valid: in  std_logic;
+			status   : out  std_logic_vector (32 downto 0));
 end can_tx;
 
-architecture RTL of can_tx is
-    -- SFF(11 bit) and EFF (29 bit)  is set in the MSB  of can_id
-    signal can_eff : STD_LOGIC;
-    signal can_rtr : STD_LOGIC;
-    signal can_packet : STD_LOGIC_VECTOR (16 downto 0);
+architecture rtl of can_tx is
+    -- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
+    signal can_eff : std_logic;
+    signal can_rtr : std_logic;
+    signal can_packet : std_logic_vector (16 downto 0);
 begin
 	can_eff <= can_id(31);
 	can_rtr <= can_id(30);
@@ -27,5 +27,5 @@ begin
 			end if;
 		end if;
 	end process;
-end RTL;
+end rtl;
 

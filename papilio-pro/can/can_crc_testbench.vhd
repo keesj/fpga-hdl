@@ -1,32 +1,32 @@
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
-USE ieee.numeric_std.ALL;
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
-ENTITY can_crc_testbench IS
-END can_crc_testbench;
+entity can_crc_testbench is
+end can_crc_testbench;
 
-ARCHITECTURE behavior OF can_crc_testbench IS 
+architecture behavior of can_crc_testbench is 
 
-  -- Component Declaration
-  COMPONENT can_crc
-   Port ( clk : in  STD_LOGIC;
-			  din : in  STD_LOGIC;
-           ce : in  STD_LOGIC;
-			  rst : in STD_LOGIC;
-           crc : out  STD_LOGIC_VECTOR(14 downto 0)
+  -- component declaration
+  component can_crc
+   port ( clk : in  std_logic;
+			  din : in  std_logic;
+           ce : in  std_logic;
+			  rst : in std_logic;
+           crc : out  std_logic_vector(14 downto 0)
     );
-  END COMPONENT;
+  end component;
   
-  signal clk : STD_LOGIC;
-  signal din: STD_LOGIC;
-  signal ce: STD_LOGIC;
-  signal rst : STD_LOGIC;
-  signal crc: STD_LOGIC_VECTOR(14 downto 0);
+  signal clk : std_logic;
+  signal din: std_logic;
+  signal ce: std_logic;
+  signal rst : std_logic;
+  signal crc: std_logic_vector(14 downto 0);
   constant clk_period : time := 10 ns;
   constant wait_time : time := 30 ns;
- BEGIN
+ begin
 
-     uut: can_crc PORT MAP(
+     uut: can_crc port map(
 			clk => clk,
 			din => din,
 			ce => ce,
@@ -42,13 +42,13 @@ ARCHITECTURE behavior OF can_crc_testbench IS
         wait for clk_period/2;  --for next 0.5 ns signal is '1'.
    end process;
   
-  tb : PROCESS
-  BEGIN
+  tb : process
+  begin
     wait for 10 ns;
 	 rst <= '1';
 	 wait for wait_time;
 	 rst <= '0';
-	 report "CRC value ";
+	 report "crc value ";
 	 
 	 din <= '1';
 	 ce <='1';
@@ -56,5 +56,5 @@ ARCHITECTURE behavior OF can_crc_testbench IS
 	 ce <= '0';
 	 
 	 wait;
-  END PROCESS tb;
-END;
+  end process tb;
+end;
