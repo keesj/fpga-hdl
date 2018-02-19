@@ -49,6 +49,9 @@ architecture rtl of can_tx is
 	signal can_tx_state: can_tx_states := can_tx_idle;
 begin
 
+	-- status / next state logic
+	status(0) <= '0' when can_tx_state = can_tx_idle else '1';
+
 	count: process(clk)
 	begin
 		if rising_edge(clk) then
