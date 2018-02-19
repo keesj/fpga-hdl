@@ -24,9 +24,8 @@ architecture rtl of can_tx is
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
 
 	signal shift_buff : std_logic_vector (63 downto 0) := (others => '0');
-
-	signal can_bit_time_counter : signed (7 downto 0) := (others => '0');		
-	signal can_bit_count : signed (7 downto 0) := (others => '0');		
+	signal can_bit_time_counter : unsigned (7 downto 0) := (others => '0');		
+	signal can_bit_count : unsigned (7 downto 0) := (others => '0');		
 
 	-- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
 	alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
@@ -72,30 +71,52 @@ begin
 						can_phy_tx_en  <='1';
 
 						-- and prepare next fields
+						-- 12 bits id + rtr (retry?)						
 						can_bit_count <= X"0c";
 						shift_buff(63 downto 52) <= can_id_buf(31 downto 21)  & can_rtr;
 						can_tx_state <= can_tx_arbitration;	
 					when can_tx_arbitration =>
-
+						report "AR bites";	
 						can_phy_tx <= shift_buff(63);						
-					    can_bit_count <= can_bit_count -1;
+						can_bit_count <= can_bit_count -1;
 						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
-						
+						-- todo check if arbitration applies
 						if can_bit_count = "0000000" then
+							--prepare next step
 							can_tx_state <= can_tx_control;
 							can_bit_count <= X"06";
+							-- id-ext + 0 + 4 bit dlc currently only supporting 
 							shift_buff(63 downto 58) <= "0" & "0" & can_dlc_buf;
 						end if;	
 					when can_tx_control =>
-					
+						report "Control bites";	
 						can_phy_tx <= shift_buff(63);						
 						can_bit_count <= can_bit_count -1;
 						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
 						
 						if can_bit_count = "0000000" then
-							can_tx_state <= can_tx_idle;
-							can_phy_tx_en  <= '0';
-						end if;							
+							case can_dlc_buf is
+							when "0000" =>
+								can_tx_state <= can_tx_crc;
+							when others =>
+								can_bit_count(3 downto 0) <= unsigned(can_dlc_buf);
+								shift_buff <= can_data_buf;
+								can_tx_state <= can_tx_data;
+							end case;
+						end if;	
+					when can_tx_data =>
+						report "Data bites";	
+						can_phy_tx <= shift_buff(63);						
+						can_bit_count <= can_bit_count -1;
+						shift_buff <= shift_buff(62 downto 0) & shift_buff(63);
+						
+						if can_bit_count = "0000000" then
+							can_tx_state <= can_tx_crc;						
+						end if;													
+					when can_tx_crc =>
+						report "CRC bites";					
+						can_tx_state <= can_tx_idle;	
+						
 					when others =>
 						report "OTHER";
 						can_tx_state <= can_tx_idle;
