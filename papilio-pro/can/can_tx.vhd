@@ -197,17 +197,28 @@ begin
                             end if;
                         when can_tx_crc =>
                             if can_bit_counter = 15 then
+
+                                can_bit_counter <= (others => '0');
                                 can_tx_state <= can_tx_ack_delimiter;
                                 crc_rst <= '1';
-                                -- After crc and the crc delimiter we have
+                                -- push ack slot and delimiter
+                                shift_buff(127 downto 126) <= "0" & "1";
                             end if;
-                        when can_tx_ack_delimiter =>
-                            can_tx_state <= can_tx_ack_slot;
-                        when can_tx_ack_slot => 
+                        when can_tx_ack_slot =>
+
+                            can_bit_counter <= (others => '0');
+                            can_tx_state <= can_tx_ack_delimiter;
+                        when can_tx_ack_delimiter => 
+                            can_bit_counter <= (others => '0');
                             can_tx_state <= can_tx_eof;
+                            shift_buff(127 downto 121) <= "1111111";
                         when can_tx_eof =>
+                            stuffing_enabled <='0';
                             -- TODO disable stuffing
-                            can_tx_state <= can_tx_idle;
+                            if can_bit_counter = 6 then
+                                can_tx_state <= can_tx_idle;
+                                can_phy_tx_en <= '0';
+                            end if;                            
                     end case;
                 end if;
             end if;
