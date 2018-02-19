@@ -20,6 +20,6 @@ ghdl -a can_crc_testbench.vhd
 
 ghdl -a can_tx.vhd
 ghdl -a can_tx_testbench.vhd
-ghdl -r can_tx_testbench --vcd=can_tx_testbench.vcd --stop-time=1ms
+ghdl -r can_tx_testbench --vcd=can_tx_testbench.vcd --stop-time=100us
 #ghdl -r can_crc_testbench --vcd=can_crc_testbench.vcd --stop-time=1ms
 #ghdl -r can_clk_testbench --vcd=can_clk_testbench.vcd --stop-time=3ms

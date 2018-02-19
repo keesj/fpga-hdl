@@ -26,11 +26,15 @@ architecture rtl of can_tx is
     signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
     
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
+
+    -- Currently used to generate a clock for the bits based on the input clock
     signal can_bit_time_counter : unsigned (7 downto 0) := (others => '0');
+
+    -- Counter used to count the bits sent
     signal can_bit_counter : unsigned (7 downto 0) := (others => '0');
     
 
-    -- two buffers to keep the last bits sent
+    -- Two buffers to keep the last bits sent to detect when we need bit stuffing
     --https://en.wikipedia.org/wiki/CAN_bus#Bit_stuffing
     --CAN uses NRZ encoding and bit stuffing
     --After 5 identical bits, a stuff bit of opposite value is added.
@@ -39,9 +43,12 @@ architecture rtl of can_tx is
     signal bit_shift_zero_bits : std_logic_vector(4 downto 0) := (others => '1');
     alias can_logic_bit_next : std_logic is shift_buff(127);
 
-    -- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
-    alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
-    alias  can_eff_buf  : std_logic is can_id_buf(31);
+    ---- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
+    -- Code kept here as as start of extended mode support
+    --alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
+    --alias  can_eff_buf  : std_logic is can_id_buf(31);
+
+    -- The lsb of the can_id register signifies a can rtr packet
     alias  can_rtr  : std_logic is can_id_buf(30);
     
     -- State
@@ -50,7 +57,7 @@ architecture rtl of can_tx is
           can_tx_start_of_frame, -- 1 bit
           can_tx_arbitration,    -- 12 bit = 11 bit id + req remote
           can_tx_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
-          can_tx_data,           -- 0-64 bits (0 + 8 * dlc)
+          can_tx_data,           -- 0-64 bits (8 * dlc)
           can_tx_crc,            -- 15 bits + 1 bit crc delimiter
           can_tx_ack_slot,       -- 1 bit
           can_tx_ack_delimiter,  -- 1 bit 
@@ -58,6 +65,7 @@ architecture rtl of can_tx is
     );
 
     signal can_tx_state: can_tx_states := can_tx_idle;
+
     signal needs_stuffing : std_logic := '0';
     signal stuffing_value : std_logic := '0';
     signal next_tx_value : std_logic := '0';
@@ -72,9 +80,9 @@ architecture rtl of can_tx is
         port ( 
                 clk : in  std_logic;
                 din : in  std_logic;
-                ce : in std_logic;
-                rst : in std_logic;
-                crc : out  std_logic_vector(14 downto 0)
+                ce  : in  std_logic;
+                rst : in  std_logic;
+                crc : out std_logic_vector(14 downto 0)
         );
     end component;
 begin
@@ -87,28 +95,37 @@ begin
         crc => crc_data
       );
 
-    --crc_din <= shift_buff(127);
+    -- buffers for phy tx and tx_en to be able to read their state
     can_phy_tx_en <= can_phy_tx_en_buf;
     can_phy_tx <= can_phy_tx_buf;
 
+
     -- status / next state logic
+    -- bit[0] of the status register signifies the logic is busy. the rest is unused
     status(0) <= '0' when can_tx_state = can_tx_idle else '1';
     status(31 downto 1) <= (others => '0');
+
+    -- The bit shift buffers are filled for evey bit time
     needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
     stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
+
+    -- determine the next value to shift (either the head of the fifo buffer or the stuffing value)
     next_tx_value <= stuffing_value when needs_stuffing = '1' else shift_buff(127);
+    -- For crc we never take stuffing into account and look at the current bit sent out
     crc_din <= shift_buff(127);
     
     count: process(clk)
     begin
         if rising_edge(clk) then
+            -- For crc we need to assert the signal only for one clock cycle hence we reset
+            -- to 0 every cycle
             crc_ce <= '0';
             can_bit_time_counter <= can_bit_time_counter +1;
 
             if can_valid ='1' and can_tx_state = can_tx_idle then
                 report "CANUP";
 
-                --copy the data to the internal buffers
+                -- Copy the data to the internal buffers
                 can_id_buf <= can_id;
                 can_dlc_buf <= can_dlc;
                 can_data_buf <= can_data;
@@ -184,7 +201,7 @@ begin
                                 end if;
                             end if;
                         when can_tx_data =>
-                            report "Data bites";
+                            report "Data";
                             crc_ce <= '1';
                             
                             if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1 then
@@ -215,7 +232,7 @@ begin
                             can_tx_state <= can_tx_eof;
                             shift_buff(127 downto 121) <= "1111111";
                         when can_tx_eof =>
-                            --disable stuffing for those bits
+                            -- disable stuffing for those bits
                             stuffing_enabled <='0';
                             if can_bit_counter = 6 then
                                 can_tx_state <= can_tx_idle;
