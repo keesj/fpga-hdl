@@ -130,6 +130,7 @@ begin
     can_valid <= '0';
     wait until status(0) ='0';
 
+    --CRC 5C70
     can_id(31 downto 21)  <= "010" & "0000" & "0010";
     can_id(0) <= '0';
     can_dlc <= "0101";
