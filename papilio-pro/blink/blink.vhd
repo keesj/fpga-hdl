@@ -5,10 +5,10 @@ use IEEE.NUMERIC_STD.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity blink is
-    Port ( clk : in  STD_LOGIC;
+    port ( clk : in  STD_LOGIC;
            led : out  STD_LOGIC;
-			  sig : out  std_logic_vector(15 downto 0)
-			  );
+	   sig : out  std_logic_vector(15 downto 0)
+	  );
 end blink;
 
 architecture Behavioral of blink is
@@ -20,7 +20,7 @@ begin
                 if rising_edge(clk) then
                         counter <= counter + '1';
                         led <= counter(25);
-								sig <= fastCounter;
+			sig <= fastCounter;
                 end if;
         end process;
 end Behavioral;
