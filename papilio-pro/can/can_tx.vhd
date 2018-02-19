@@ -184,6 +184,11 @@ begin
                         when can_tx_data =>
                             report "Data bites";
                             crc_ce <= '1';
+
+                            if can_bit_counter = (8 * unsigned(can_dlc_buf)) -2 then
+                                crc_ce <= '0';
+                            end if;
+                            
                             if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1 then
                                 can_bit_counter <= (others => '0');
                                 can_tx_state <= can_tx_crc;
@@ -192,6 +197,8 @@ begin
                                 --Add to send buffer
                                 shift_buff(127 downto 112) <= crc_data & '0';
                                 --shift_buff(127 downto 112) <= (others => '1');
+                            else 
+                            
                             end if;
                         when can_tx_crc =>
                             if can_bit_counter = 15 then
