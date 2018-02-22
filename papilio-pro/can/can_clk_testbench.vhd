@@ -9,20 +9,21 @@ architecture behavior of can_clk_testbench is
 
   -- Component declaration
   component can_clk
-  port( clk_in : in std_logic;
-        clk_div : in std_logic;
-        sync : in std_logic;
-        sample_clk : out std_logic
-        );
+    port ( clk : in std_logic;
+           can_bus_value : in  std_logic;         -- The current value of the but. used to detect edges and adapt the clock
+           can_sample_set_clk : out  std_logic;   -- Signal an outgoing sample must be set (firest quanta)
+           can_sample_check_clk : out  std_logic; -- Signal the value of a signal can be checked to detect collision
+           can_sample_get_clk : out  std_logic);  -- Singal that the incommint sample can be read
   end component;
 
   -- Inputs
-  signal clk_in : std_logic := '0';
-  signal clk_div : std_logic := '0';
-  signal sync: std_logic := '0';
+  signal clk : std_logic := '0';
+  signal can_bus_value: std_logic := '0';
 
    -- Outputs
-  signal sample_clk : std_logic;
+  signal can_sample_set_clk: std_logic := '0';
+  signal can_sample_check_clk: std_logic := '0';
+  signal can_sample_get_clk: std_logic := '0';
 
    -- Logic components
   constant clk_period : time := 10 ns;
@@ -30,17 +31,18 @@ architecture behavior of can_clk_testbench is
 
   -- Component instantiation
   uut: can_clk port map(
-    clk_in => clk_in ,
-    clk_div => clk_div,
-    sync => sync,
-    sample_clk => sample_clk
+    clk => clk ,
+    can_bus_value => can_bus_value ,
+    can_sample_set_clk => can_sample_set_clk ,
+    can_sample_check_clk => can_sample_check_clk ,
+    can_sample_get_clk => can_sample_get_clk 
   );
 
   clk_process :process
   begin
-    clk_in <= '0';
+    clk <= '0';
     wait for clk_period/2;  --for 0.5 ns signal is '0'.
-    clk_in <= '1';
+    clk <= '1';
     wait for clk_period/2;  --for next 0.5 ns signal is '1'.
   end process;
    
