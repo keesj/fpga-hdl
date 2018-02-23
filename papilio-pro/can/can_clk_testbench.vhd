@@ -10,6 +10,7 @@ architecture behavior of can_clk_testbench is
   -- Component declaration
   component can_clk
     port ( clk : in std_logic;
+           rst : in std_logic;
            can_bus_value : in  std_logic;         -- The current value of the but. used to detect edges and adapt the clock
            can_sample_set_clk : out  std_logic;   -- Signal an outgoing sample must be set (firest quanta)
            can_sample_check_clk : out  std_logic; -- Signal the value of a signal can be checked to detect collision
@@ -18,8 +19,9 @@ architecture behavior of can_clk_testbench is
 
   -- Inputs
   signal clk : std_logic := '0';
+  signal rst : std_logic := '0';
   signal can_bus_value: std_logic := '0';
-
+  signal clk_rst: std_logic :='0';
    -- Outputs
   signal can_sample_set_clk: std_logic := '0';
   signal can_sample_check_clk: std_logic := '0';
@@ -32,6 +34,7 @@ architecture behavior of can_clk_testbench is
   -- Component instantiation
   uut: can_clk port map(
     clk => clk ,
+    rst => rst,
     can_bus_value => can_bus_value ,
     can_sample_set_clk => can_sample_set_clk ,
     can_sample_check_clk => can_sample_check_clk ,
@@ -51,7 +54,11 @@ architecture behavior of can_clk_testbench is
   begin
     wait for 100 ns; -- wait until global set/reset completes
     -- add user defined stimulus here
-
+    rst <= '1';
+    wait until falling_edge(clk);
+    wait until rising_edge(clk);
+    rst <= '0';
+    wait for 10 ms;
     --wait; -- will wait forever
   end process tb;
    --  end test bench 
