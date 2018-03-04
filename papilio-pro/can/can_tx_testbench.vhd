@@ -17,6 +17,7 @@ architecture behavior of can_tx_testbench is
             can_valid   : in  std_logic;
             can_start   : in  std_logic;
             status      : out std_logic_vector (31 downto 0);
+            can_signal_set : in std_logic; -- signal to set/change a value on the bus
             can_phy_tx     : out  std_logic;
             can_phy_tx_en  : out  std_logic;
             can_phy_rx     : in std_logic
@@ -30,6 +31,7 @@ architecture behavior of can_tx_testbench is
     signal can_valid   :   std_logic := '0';
     signal can_start   :   std_logic:= '0';
     signal status      :  std_logic_vector (31 downto 0):= (others => '0');
+    signal can_signal_set : std_logic := '0';
     signal can_phy_tx     :   std_logic:= '0';
     signal can_phy_tx_en  :   std_logic:= '0';
     signal can_phy_rx     :  std_logic:= '0';
@@ -45,17 +47,21 @@ begin
         can_valid  => can_valid,
         can_start  => can_start,
         status     => status,
+        can_signal_set => can_signal_set,
         can_phy_tx  => can_phy_tx,
         can_phy_tx_en  => can_phy_tx_en,
         can_phy_rx     => can_phy_rx
     );
 
+   --can_signal_set <=clk;
 
    clk_process :process
    begin
         clk <= '0';
+        can_signal_set <= '0';
         wait for clk_period/2;  --for 0.5 ns signal is '0'.
         clk <= '1';
+        can_signal_set <= '1';
         wait for clk_period/2;  --for next 0.5 ns signal is '1'.
    end process;
 

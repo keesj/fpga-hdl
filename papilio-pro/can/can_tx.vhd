@@ -10,6 +10,7 @@ entity can_tx is
             can_valid      : in  std_logic;
             can_start      : in  std_logic;
             status         : out std_logic_vector (31 downto 0);
+            can_signal_set : in std_logic; -- signal to set/change a value on the bus
             can_phy_tx     : out  std_logic;
             can_phy_tx_en  : out  std_logic;
             can_phy_rx     : in std_logic
@@ -26,9 +27,6 @@ architecture rtl of can_tx is
     signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
     
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
-
-    -- Currently used to generate a clock for the bits based on the input clock
-    signal can_bit_time_counter : unsigned (7 downto 0) := (others => '0');
 
     -- Counter used to count the bits sent
     signal can_bit_counter : unsigned (7 downto 0) := (others => '0');
@@ -120,8 +118,6 @@ begin
             -- For crc we need to assert the signal only for one clock cycle hence we reset
             -- to 0 every cycle
             crc_ce <= '0';
-            can_bit_time_counter <= can_bit_time_counter +1;
-
             if can_valid ='1' and can_tx_state = can_tx_idle then
                 report "CANUP";
 
@@ -145,11 +141,7 @@ begin
                 bit_shift_one_bits <= (others => '0');
                 bit_shift_zero_bits  <= (others => '1');
                 crc_rst <= '1';
-            end if;
-
-            --When to send a bit
-            if can_bit_time_counter = 10 then
-                can_bit_time_counter <= (others => '0');
+            elsif can_signal_set = '1' then  
 
                 can_phy_tx_buf <= next_tx_value ;
                 

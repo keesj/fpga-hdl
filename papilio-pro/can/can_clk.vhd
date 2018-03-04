@@ -30,33 +30,35 @@ begin
     begin
         if rising_edge(clk) then
             if rst = '1' then
+                -- start with counter =0 to ensure the 
+                -- next clock cycle the code gets triggered imediately
                 counter <= 0;
-                quanta_counter <= divider;
-            end if;
+                quanta_counter <= 0;
+            else
+                can_sample_set_clk_buf <= '0';
+                can_sample_check_clk_buf <= '0';
+                can_sample_get_clk_buf <= '0' ;
 
-            can_sample_set_clk_buf <= '0';
-            can_sample_check_clk_buf <= '0';
-            can_sample_get_clk_buf <= '0' ;
+                counter <= counter - 1;
+                if counter = 0 then
+                    counter <= divider;
+                    quanta_counter <= quanta_counter +1;
+                    if quanta_counter = 10 then
+                    quanta_counter <= 0;
+                    end if;
 
-            counter <= counter +1;
-            if counter = divider then
-                counter <= 0;
-                quanta_counter <= quanta_counter +1;
-                if quanta_counter = 10 then
-                  quanta_counter <= 0;
+                    if 
+                        quanta_counter = 0 
+                    then
+                        can_sample_set_clk_buf <= '1';
+                    elsif  quanta_counter = 8 
+                    then
+                        can_sample_get_clk_buf <= '1';
+                    else 
+                        can_sample_check_clk_buf <= '1';
+                    end if;
                 end if;
-
-                if 
-                    quanta_counter = 0 
-                then
-                    can_sample_set_clk <= '1';
-                elsif  quanta_counter = 8 
-                then
-                    can_sample_get_clk <= '1';
-                else 
-                    can_sample_check_clk <= '1';
-                end if;
-            end if;
+            end if; 
         end if;
     end process;
     
