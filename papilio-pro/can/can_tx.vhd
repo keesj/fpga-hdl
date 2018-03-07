@@ -8,7 +8,6 @@ entity can_tx is
             can_dlc        : in  std_logic_vector (3 downto 0);
             can_data       : in  std_logic_vector (63 downto 0);
             can_valid      : in  std_logic;
-            can_start      : in  std_logic;
             status         : out std_logic_vector (31 downto 0);
             can_signal_set : in std_logic; -- signal to set/change a value on the bus
             can_phy_tx     : out  std_logic;

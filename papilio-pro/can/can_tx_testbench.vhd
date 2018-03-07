@@ -13,7 +13,6 @@ architecture behavior of can_tx_testbench is
     signal can_dlc     :   std_logic_vector (3 downto 0) := (others => '0');
     signal can_data    :   std_logic_vector (63 downto 0) := (others => '0');
     signal can_valid   :   std_logic := '0';
-    signal can_start   :   std_logic:= '0';
     signal status      :  std_logic_vector (31 downto 0):= (others => '0');
     signal can_signal_set : std_logic := '0';
     signal can_phy_tx     :   std_logic:= '0';
@@ -29,7 +28,6 @@ begin
         can_dlc => can_dlc,
         can_data   => can_data,
         can_valid  => can_valid,
-        can_start  => can_start,
         status     => status,
         can_signal_set => can_signal_set,
         can_phy_tx  => can_phy_tx,

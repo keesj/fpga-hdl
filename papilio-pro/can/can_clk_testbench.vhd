@@ -11,7 +11,7 @@ architecture behavior of can_clk_testbench is
   signal clk : std_logic := '0';
   signal rst : std_logic := '0';
   signal can_bus_value: std_logic := '0';
-  signal clk_rst: std_logic :='0';
+  
    -- Outputs
   signal can_sample_set_clk: std_logic := '0';
   signal can_sample_check_clk: std_logic := '0';

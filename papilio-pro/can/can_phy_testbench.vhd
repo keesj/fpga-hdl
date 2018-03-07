@@ -16,7 +16,6 @@ architecture behavior of can_phy_testbench is
 
    --outputs
    signal rx : std_logic;
-   signal can_collision : std_logic;
     
    -- no clocks detected in port list. replace <clock> below with 
    -- appropriate port name 
