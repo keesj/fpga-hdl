@@ -7,16 +7,6 @@ end can_clk_testbench;
 
 architecture behavior of can_clk_testbench is 
 
-  -- Component declaration
-  component can_clk
-    port ( clk : in std_logic;
-           rst : in std_logic;
-           can_bus_value : in  std_logic;         -- The current value of the but. used to detect edges and adapt the clock
-           can_sample_set_clk : out  std_logic;   -- Signal an outgoing sample must be set (firest quanta)
-           can_sample_check_clk : out  std_logic; -- Signal the value of a signal can be checked to detect collision
-           can_sample_get_clk : out  std_logic);  -- Singal that the incommint sample can be read
-  end component;
-
   -- Inputs
   signal clk : std_logic := '0';
   signal rst : std_logic := '0';
@@ -32,7 +22,7 @@ architecture behavior of can_clk_testbench is
   begin
 
   -- Component instantiation
-  uut: can_clk port map(
+  uut: entity work.can_clk port map(
     clk => clk ,
     rst => rst,
     can_bus_value => can_bus_value ,

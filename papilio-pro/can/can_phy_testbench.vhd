@@ -5,18 +5,6 @@ entity can_phy_testbench is
 end can_phy_testbench;
  
 architecture behavior of can_phy_testbench is 
- 
-    -- component declaration for the unit under test (uut)
-    component can_phy
-    port(
-         tx            : in  std_logic;
-         tx_en         : in  std_logic;
-         rx            : out  std_logic;
-         can_collision : out  std_logic;
-         can_l         : inout  std_logic;
-         can_h         : inout  std_logic
-        );
-    end component;
     
    --inputs
    signal tx : std_logic := '0';
@@ -38,7 +26,7 @@ architecture behavior of can_phy_testbench is
 begin
  
     -- instantiate the unit under test (uut)
-   uut: can_phy port map (
+   uut: entity work.can_phy port map (
           tx => tx,
           tx_en => tx_en,
           rx => rx,

@@ -9,16 +9,6 @@ end can_crc_testbench;
 
 architecture behavior of can_crc_testbench is 
 
-  -- component declaration
-  component can_crc
-   port ( clk : in  std_logic;
-          din : in  std_logic;
-          ce : in  std_logic;
-          rst : in std_logic;
-          crc : out  std_logic_vector(14 downto 0)
-    );
-  end component;
-  
   signal data : std_logic_vector(7 downto 0) := "01010101";
   signal clk : std_logic;
   signal din: std_logic;
@@ -28,8 +18,7 @@ architecture behavior of can_crc_testbench is
   constant clk_period : time := 10 ns;
   
  begin
-
-     uut: can_crc port map(
+     uut: entity work.can_crc port map(
       clk => clk,
       din => din,
       ce => ce,
