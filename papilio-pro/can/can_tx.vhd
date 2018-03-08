@@ -47,7 +47,7 @@ architecture rtl of can_tx is
 
     -- The lsb of the can_id register signifies a can rtr packet
     alias  can_rtr  : std_logic is can_id_buf(30);
-    
+
     -- State
     type can_tx_states is (
           can_tx_idle,
@@ -126,8 +126,8 @@ begin
                 can_data_buf <= can_data;
                 
                 -- and prepare next fields
-                -- 13 bits  <= start of frame + id (11 bit) + rtr 
-                shift_buff(127 downto 115) <= '0' & can_id(31 downto 21)  & can_id(0);
+                -- 13 bits  <= start of frame + id (11 bit) + rtr
+                shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
                 -- 6 bits <= IDE + reservered + dlc
                 shift_buff(114 downto 109) <= "0" & "0" & can_dlc;
                 -- 64 bits data (we always copy)
@@ -140,7 +140,7 @@ begin
                 bit_shift_one_bits <= (others => '0');
                 bit_shift_zero_bits  <= (others => '1');
                 crc_rst <= '1';
-            elsif can_signal_set = '1' then  
+            elsif can_signal_set = '1' then
 
                 can_phy_tx_buf <= next_tx_value ;
                 
@@ -228,7 +228,7 @@ begin
                             if can_bit_counter = 6 then
                                 can_tx_state <= can_tx_idle;
                                 can_phy_tx_en_buf <= '0';
-                            end if;                            
+                            end if;
                     end case;
                 end if;
             end if;
