@@ -3,9 +3,16 @@ use ieee.std_logic_1164.all;
 
 entity can is
     port (
+        -- Standard signals
         clk : in std_logic;
         rst : in std_logic;
         
+        --can TX related
+        can_tx_id    : in std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
+        can_tx_dlc   : in std_logic_vector (3 downto 0) := (others => '0');
+        can_tx_data  : in std_logic_vector (63 downto 0) := (others => '0');
+        can_tx_valid : in std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
+
         -- phy signals
         phy_tx : out std_logic;
         phy_tx_en : out std_logic;
@@ -21,10 +28,6 @@ architecture behavior of can is
   signal can_clk_sample_check_clk: std_logic := '0'; --Sync Signal to check a value on the can bus
   signal can_clk_sample_get_clk: std_logic := '0';   --Sync Signal to read the value of a signal
 
-  signal can_tx_id     : std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
-  signal can_tx_dlc    : std_logic_vector (3 downto 0) := (others => '0');
-  signal can_tx_data   : std_logic_vector (63 downto 0) := (others => '0');
-  signal can_tx_valid  : std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
   signal can_tx_status : std_logic_vector (31 downto 0):= (others => '0'); --transmit status
 begin
 
