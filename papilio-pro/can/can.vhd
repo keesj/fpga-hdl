@@ -8,15 +8,15 @@ entity can is
         rst : in std_logic;
         
         --can TX related
-        can_tx_id    : in std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
-        can_tx_dlc   : in std_logic_vector (3 downto 0) := (others => '0');
-        can_tx_data  : in std_logic_vector (63 downto 0) := (others => '0');
+        can_tx_id    : in std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
+        can_tx_dlc   : in std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
+        can_tx_data  : in std_logic_vector (63 downto 0) := (others => '0'); -- data
         can_tx_valid : in std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
 
         -- phy signals
-        phy_tx : out std_logic;
+        phy_tx    : out std_logic;
         phy_tx_en : out std_logic;
-        phy_rx: in std_logic
+        phy_rx    : in std_logic
     );
 end can;
 
