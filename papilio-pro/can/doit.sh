@@ -8,6 +8,7 @@ for i in can_phy.vhd \
 	can_clk.vhd \
 	can_crc.vhd \
 	can_tx.vhd \
+	can_rx.vhd \
 	can_phy_testbench.vhd \
 	can_clk_testbench.vhd \
 	can_crc_testbench.vhd \
