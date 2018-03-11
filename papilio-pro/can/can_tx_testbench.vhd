@@ -19,6 +19,11 @@ architecture behavior of can_tx_testbench is
     signal can_phy_tx_en  :   std_logic:= '0';
     signal can_phy_rx     :  std_logic:= '0';
 
+
+    signal can_tx_out         : std_logic_vector(126 downto 0) := (others =>'0');
+    signal can_tx_out_len     : integer := 0;
+
+
     constant clk_period : time := 10 ns;
 
 begin
@@ -45,6 +50,23 @@ begin
         clk <= '1';
         can_signal_set <= '1';
         wait for clk_period/2;  --for next 0.5 ns signal is '1'.
+   end process;
+
+   data_out :process(clk)
+   begin
+        if rising_edge(clk) 
+        then
+            if can_signal_set ='1'  then
+                if can_phy_tx_en ='1' then
+                can_tx_out <=  can_tx_out(125 downto 0) & can_phy_tx ;
+                can_tx_out_len <= can_tx_out_len +1;
+                end if;
+                if can_valid = '1' then
+                    can_tx_out <= (others => '0');
+                    can_tx_out_len <=0;
+                end if;
+            end if;
+        end if;
    end process;
 
   -- Test bench statements
@@ -78,6 +100,7 @@ begin
         wait until falling_edge(clk);
         can_valid <= '0';
         wait until status(0) ='0';
+        report "DOIT" & integer'image(can_tx_out_len);
     end loop;
     wait; -- will wait forever
   end process tb; 
