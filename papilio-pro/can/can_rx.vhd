@@ -79,7 +79,6 @@ begin
         crc => crc_data
       );
 
-
     -- status / next state logic
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
     status(0) <= '0' when can_rx_state = can_idle else '1';

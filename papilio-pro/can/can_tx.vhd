@@ -49,19 +49,19 @@ architecture rtl of can_tx is
     alias  can_rtr  : std_logic is can_id_buf(30);
 
     -- State
-    type can_tx_states is (
-          can_tx_idle,
-          can_tx_start_of_frame, -- 1 bit
-          can_tx_arbitration,    -- 12 bit = 11 bit id + req remote
-          can_tx_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
-          can_tx_data,           -- 0-64 bits (8 * dlc)
-          can_tx_crc,            -- 15 bits + 1 bit crc delimiter
-          can_tx_ack_slot,       -- 1 bit
-          can_tx_ack_delimiter,  -- 1 bit 
-          can_tx_eof             -- 7 bit
+    type can_states is (
+          can_state_idle,
+          can_state_start_of_frame, -- 1 bit
+          can_state_arbitration,    -- 12 bit = 11 bit id + req remote
+          can_state_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
+          can_state_data,           -- 0-64 bits (8 * dlc)
+          can_state_crc,            -- 15 bits + 1 bit crc delimiter
+          can_state_ack_slot,       -- 1 bit
+          can_state_ack_delimiter,  -- 1 bit 
+          can_state_eof             -- 7 bit
     );
 
-    signal can_tx_state: can_tx_states := can_tx_idle;
+    signal can_tx_state: can_states := can_state_idle;
 
     signal needs_stuffing : std_logic := '0';
     signal stuffing_value : std_logic := '0';
@@ -73,18 +73,9 @@ architecture rtl of can_tx is
     signal crc_rst : std_logic := '0';
     signal crc_data : std_logic_vector(14 downto 0);
     
-    component can_crc 
-        port ( 
-                clk : in  std_logic;
-                din : in  std_logic;
-                ce  : in  std_logic;
-                rst : in  std_logic;
-                crc : out std_logic_vector(14 downto 0)
-        );
-    end component;
 begin
 
-    crc: can_crc port map(
+    crc: entity work.can_crc port map(
         clk => clk,
         din => crc_din,
         ce => crc_ce,
@@ -99,7 +90,7 @@ begin
 
     -- status / next state logic
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
-    status(0) <= '0' when can_tx_state = can_tx_idle else '1';
+    status(0) <= '0' when can_tx_state = can_state_idle else '1';
     status(31 downto 1) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
@@ -117,7 +108,7 @@ begin
             -- For crc we need to assert the signal only for one clock cycle hence we reset
             -- to 0 every cycle
             crc_ce <= '0';
-            if can_valid ='1' and can_tx_state = can_tx_idle then
+            if can_valid ='1' and can_tx_state = can_state_idle then
                 report "CANUP";
 
                 -- Copy the data to the internal buffers
@@ -135,7 +126,7 @@ begin
                 
                 -- We probably 
                 can_bit_counter <= (others => '0');
-                can_tx_state <= can_tx_start_of_frame;
+                can_tx_state <= can_state_start_of_frame;
                 --reset stuffing (enable is done in SOF)
                 bit_shift_one_bits <= (others => '0');
                 bit_shift_zero_bits  <= (others => '1');
@@ -157,41 +148,41 @@ begin
                     can_bit_counter <= can_bit_counter +1; 
                     crc_rst <= '0';
                     case can_tx_state is
-                        when can_tx_idle =>
+                        when can_state_idle =>
                             --report "IDLE";
                             can_phy_tx_en_buf <= '0';
                             stuffing_enabled <='0';
                             crc_ce <= '0';
-                        when can_tx_start_of_frame =>
+                        when can_state_start_of_frame =>
                             report "SOF";
                             stuffing_enabled <='1';
                             can_phy_tx_en_buf <= '1';
                             crc_ce <= '1';
                             --perpare next state
                             can_bit_counter <= (others => '0');
-                            can_tx_state <= can_tx_arbitration;
-                        when can_tx_arbitration =>
+                            can_tx_state <= can_state_arbitration;
+                        when can_state_arbitration =>
                             report "AR bites";
                             crc_ce <= '1';
                             if can_bit_counter = 11  then
                                 --prare next state
                                 can_bit_counter <=(others => '0');
-                                can_tx_state <= can_tx_control;
+                                can_tx_state <= can_state_control;
                             end if;
-                        when can_tx_control =>
+                        when can_state_control =>
                             report "Control bites";
                             crc_ce <= '1';
                             if can_bit_counter = 5 then
                                 can_bit_counter <=(others => '0');
                                 if can_dlc_buf = "0000" then
-                                    can_tx_state <= can_tx_crc;
+                                    can_tx_state <= can_state_crc;
                                     -- the next bit is going to be the CRC do not update crc
                                     crc_ce <= '0';
                                 else 
-                                    can_tx_state <= can_tx_data;
+                                    can_tx_state <= can_state_data;
                                 end if;
                             end if;
-                        when can_tx_data =>
+                        when can_state_data =>
                             report "Data";
                             crc_ce <= '1';
                             
@@ -199,9 +190,9 @@ begin
                                 -- the next bit is going to be the CRC do not update crc
                                 crc_ce <= '0';
                                 can_bit_counter <= (others => '0');
-                                can_tx_state <= can_tx_crc;
+                                can_tx_state <= can_state_crc;
                             end if;
-                        when can_tx_crc =>
+                        when can_state_crc =>
                             if can_bit_counter = 1 then
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
@@ -210,23 +201,23 @@ begin
                             if can_bit_counter = 15 then
 
                                 can_bit_counter <= (others => '0');
-                                can_tx_state <= can_tx_ack_delimiter;
+                                can_tx_state <= can_state_ack_delimiter;
                                 crc_rst <= '1';
                                 -- push ack slot and delimiter
                                 shift_buff(127 downto 126) <= "0" & "1";
                             end if;
-                        when can_tx_ack_slot =>
+                        when can_state_ack_slot =>
                             can_bit_counter <= (others => '0');
-                            can_tx_state <= can_tx_ack_delimiter;
-                        when can_tx_ack_delimiter => 
+                            can_tx_state <= can_state_ack_delimiter;
+                        when can_state_ack_delimiter => 
                             can_bit_counter <= (others => '0');
-                            can_tx_state <= can_tx_eof;
+                            can_tx_state <= can_state_eof;
                             shift_buff(127 downto 121) <= "1111111";
-                        when can_tx_eof =>
+                        when can_state_eof =>
                             -- disable stuffing for those bits
                             stuffing_enabled <='0';
                             if can_bit_counter = 6 then
-                                can_tx_state <= can_tx_idle;
+                                can_tx_state <= can_state_idle;
                                 can_phy_tx_en_buf <= '0';
                             end if;
                     end case;
