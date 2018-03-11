@@ -4,14 +4,12 @@ use ieee.numeric_std.all;
 
 entity can_rx is
     port (  clk            : in  std_logic;            
-            can_id         : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
-            can_dlc        : in  std_logic_vector (3 downto 0);
-            can_data       : in  std_logic_vector (63 downto 0);
-            can_valid      : in  std_logic;
+            can_id         : out  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
+            can_dlc        : out  std_logic_vector (3 downto 0);
+            can_data       : out  std_logic_vector (63 downto 0);
+            can_valid      : out  std_logic;
             status         : out std_logic_vector (31 downto 0);
             can_signal_get : in std_logic; -- signal to set/change a value on the bus
-            can_phy_tx     : out  std_logic;
-            can_phy_tx_en  : out  std_logic;
             can_phy_rx     : in std_logic
     );
 end can_rx;
@@ -21,8 +19,6 @@ architecture rtl of can_rx is
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
 
-    signal can_phy_tx_buf : std_logic := '0';
-    signal can_phy_tx_en_buf : std_logic := '0';
     signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
     
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
@@ -49,42 +45,33 @@ architecture rtl of can_rx is
     alias  can_rtr  : std_logic is can_id_buf(30);
 
     -- State
-    type can_tx_states is (
-          can_tx_idle,
-          can_tx_start_of_frame, -- 1 bit
-          can_tx_arbitration,    -- 12 bit = 11 bit id + req remote
-          can_tx_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
-          can_tx_data,           -- 0-64 bits (8 * dlc)
-          can_tx_crc,            -- 15 bits + 1 bit crc delimiter
-          can_tx_ack_slot,       -- 1 bit
-          can_tx_ack_delimiter,  -- 1 bit 
-          can_tx_eof             -- 7 bit
+    type can_states is (
+          can_idle,
+          can_start_of_frame, -- 1 bit
+          can_arbitration,    -- 12 bit = 11 bit id + req remote
+          can_control,        -- 6 bit  = id-ext + 0 + 4 bit dlc
+          can_data,           -- 0-64 bits (8 * dlc)
+          can_crc,            -- 15 bits + 1 bit crc delimiter
+          can_ack_slot,       -- 1 bit
+          can_ack_delimiter,  -- 1 bit 
+          can_eof             -- 7 bit
     );
 
-    signal can_tx_state: can_tx_states := can_tx_idle;
+    signal can_rx_state: can_states := can_idle;
 
     signal needs_stuffing : std_logic := '0';
     signal stuffing_value : std_logic := '0';
-    signal next_tx_value : std_logic := '0';
+    signal current_rx_value : std_logic := '0';
+
     signal stuffing_enabled : std_logic := '1';
 
     signal crc_din : std_logic := '0';
     signal crc_ce : std_logic := '0';
     signal crc_rst : std_logic := '0';
     signal crc_data : std_logic_vector(14 downto 0);
-    
-    component can_crc 
-        port ( 
-                clk : in  std_logic;
-                din : in  std_logic;
-                ce  : in  std_logic;
-                rst : in  std_logic;
-                crc : out std_logic_vector(14 downto 0)
-        );
-    end component;
 begin
 
-    crc: can_crc port map(
+    crc: entity work.can_crc port map(
         clk => clk,
         din => crc_din,
         ce => crc_ce,
@@ -92,22 +79,17 @@ begin
         crc => crc_data
       );
 
-    -- buffers for phy tx and tx_en to be able to read their state
-    can_phy_tx_en <= can_phy_tx_en_buf;
-    can_phy_tx <= can_phy_tx_buf;
-
 
     -- status / next state logic
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
-    status(0) <= '0' when can_tx_state = can_tx_idle else '1';
+    status(0) <= '0' when can_rx_state = can_idle else '1';
     status(31 downto 1) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
     needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
     stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 
-    -- determine the next value to shift (either the head of the fifo buffer or the stuffing value)
-    next_tx_value <= stuffing_value when needs_stuffing = '1' else shift_buff(127);
+    current_rx_value <= can_phy_rx;
     -- For crc we never take stuffing into account and look at the current bit sent out
     crc_din <= shift_buff(127);
     
@@ -117,81 +99,78 @@ begin
             -- For crc we need to assert the signal only for one clock cycle hence we reset
             -- to 0 every cycle
             crc_ce <= '0';
-            if can_valid ='1' and can_tx_state = can_tx_idle then
-                report "CANUP";
 
-                -- Copy the data to the internal buffers
-                can_id_buf <= can_id;
-                can_dlc_buf <= can_dlc;
-                can_data_buf <= can_data;
+            if can_phy_rx ='1' and can_rx_state = can_idle then
+                report "CAN START";
+
+                -- Empty internal buffers
+                can_id_buf <= (others => '0');
+                can_dlc_buf <= (others => '0');
+                can_data_buf <= (others => '0');
                 
                 -- and prepare next fields
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
-                shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
-                -- 6 bits <= IDE + reservered + dlc
-                shift_buff(114 downto 109) <= "0" & "0" & can_dlc;
-                -- 64 bits data (we always copy)
-                shift_buff(108 downto 45) <= can_data;
+                shift_buff <= (others => '0');
                 
-                -- We probably 
                 can_bit_counter <= (others => '0');
-                can_tx_state <= can_tx_start_of_frame;
+                can_rx_state <= can_start_of_frame;
                 --reset stuffing (enable is done in SOF)
                 bit_shift_one_bits <= (others => '0');
                 bit_shift_zero_bits  <= (others => '1');
                 crc_rst <= '1';
             elsif can_signal_get = '1' then
-
-                can_phy_tx_buf <= next_tx_value ;
                 
-                if needs_stuffing = '1' then
-                    report "STUFFING";
+                if needs_stuffing = '1' and stuffing_enabled ='1' then
+                    report "RX STUFFING(SKIPPING)";
                     bit_shift_one_bits <= (others => '0');
                     bit_shift_zero_bits  <= (others => '1');
                 else
-                    --shift bits for the next round
-                    shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
-                    bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & next_tx_value;
-                    bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & next_tx_value;
+                    --shift bits in
+                    shift_buff(127 downto 0) <=current_rx_value & shift_buff(126 downto 0);
+                    bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & current_rx_value;
+                    bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & current_rx_value;
 
                     can_bit_counter <= can_bit_counter +1; 
                     crc_rst <= '0';
-                    case can_tx_state is
-                        when can_tx_idle =>
+                    case can_rx_state is
+                        when can_idle =>
                             --report "IDLE";
-                            can_phy_tx_en_buf <= '0';
                             stuffing_enabled <='0';
                             crc_ce <= '0';
-                        when can_tx_start_of_frame =>
+                        when can_start_of_frame =>
                             report "SOF";
                             stuffing_enabled <='1';
-                            can_phy_tx_en_buf <= '1';
                             crc_ce <= '1';
                             --perpare next state
                             can_bit_counter <= (others => '0');
-                            can_tx_state <= can_tx_arbitration;
-                        when can_tx_arbitration =>
+                            can_rx_state <= can_arbitration;
+                        when can_arbitration =>
                             report "AR bites";
                             crc_ce <= '1';
                             if can_bit_counter = 11  then
                                 --prare next state
+                                --shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
+                                can_id_buf <= (others => '0');
+                                can_id_buf(31 downto 21) <= shift_buff(126 downto 116);
+                                can_id_buf(0)<= shift_buff(115);
+
                                 can_bit_counter <=(others => '0');
-                                can_tx_state <= can_tx_control;
+                                can_rx_state <= can_control;
                             end if;
-                        when can_tx_control =>
+                        when can_control =>
                             report "Control bites";
                             crc_ce <= '1';
                             if can_bit_counter = 5 then
                                 can_bit_counter <=(others => '0');
                                 if can_dlc_buf = "0000" then
-                                    can_tx_state <= can_tx_crc;
+                                    can_rx_state <= can_crc;
                                     -- the next bit is going to be the CRC do not update crc
                                     crc_ce <= '0';
                                 else 
-                                    can_tx_state <= can_tx_data;
+                                    can_rx_state <= can_data;
                                 end if;
                             end if;
-                        when can_tx_data =>
+                        when can_data =>
                             report "Data";
                             crc_ce <= '1';
                             
@@ -199,9 +178,9 @@ begin
                                 -- the next bit is going to be the CRC do not update crc
                                 crc_ce <= '0';
                                 can_bit_counter <= (others => '0');
-                                can_tx_state <= can_tx_crc;
+                                can_rx_state <= can_crc;
                             end if;
-                        when can_tx_crc =>
+                        when can_crc =>
                             if can_bit_counter = 1 then
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
@@ -210,24 +189,23 @@ begin
                             if can_bit_counter = 15 then
 
                                 can_bit_counter <= (others => '0');
-                                can_tx_state <= can_tx_ack_delimiter;
+                                can_rx_state <= can_ack_delimiter;
                                 crc_rst <= '1';
                                 -- push ack slot and delimiter
                                 shift_buff(127 downto 126) <= "0" & "1";
                             end if;
-                        when can_tx_ack_slot =>
+                        when can_ack_slot =>
                             can_bit_counter <= (others => '0');
-                            can_tx_state <= can_tx_ack_delimiter;
-                        when can_tx_ack_delimiter => 
+                            can_rx_state <= can_ack_delimiter;
+                        when can_ack_delimiter => 
                             can_bit_counter <= (others => '0');
-                            can_tx_state <= can_tx_eof;
+                            can_rx_state <= can_eof;
                             shift_buff(127 downto 121) <= "1111111";
-                        when can_tx_eof =>
+                        when can_eof =>
                             -- disable stuffing for those bits
                             stuffing_enabled <='0';
                             if can_bit_counter = 6 then
-                                can_tx_state <= can_tx_idle;
-                                can_phy_tx_en_buf <= '0';
+                                can_rx_state <= can_idle;
                             end if;
                     end case;
                 end if;
