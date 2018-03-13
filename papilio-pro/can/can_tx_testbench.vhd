@@ -20,7 +20,7 @@ architecture behavior of can_tx_testbench is
     signal can_phy_rx     :  std_logic:= '0';
 
 
-    signal can_tx_out         : std_logic_vector(126 downto 0) := (others =>'0');
+    signal can_tx_out         : std_logic_vector(126 downto 0) := (others =>'1');
     signal can_tx_out_len     : integer := 0;
 
 
@@ -62,7 +62,7 @@ begin
                 can_tx_out_len <= can_tx_out_len +1;
                 end if;
                 if can_valid = '1' then
-                    can_tx_out <= (others => '0');
+                    can_tx_out <= (others => '1');
                     can_tx_out_len <=0;
                 end if;
             end if;
@@ -104,11 +104,12 @@ begin
         can_valid <= '0';
         wait until status(0) ='0';
         report "DOIT" & integer'image(can_tx_out_len);
-        write(out_l,integer'image(can_tx_out_len));
-        write(out_l,String'(" "));
+--        write(out_l,integer'image(can_tx_out_len));
+--        write(out_l,String'(" "));
         hwrite(out_l,can_tx_out);
-        writeline(testbench_out,out_l);
+        
     end loop;
+    writeline(testbench_out,out_l);
     wait; -- will wait forever
   end process tb; 
 end;
