@@ -72,7 +72,10 @@ begin
   -- Test bench statements
   tb : process
     file testbench_data : text open READ_MODE is "can_tx_testbench_data.hex";
+
+    file testbench_out : text open WRITE_MODE is "can_tx_testbench_data_out.hex";
     variable l : line;
+    variable out_l : line;
     --00014 0 01 0122334455667788 5C70
     variable can_in_id : std_logic_vector(10 downto 0);
     variable can_in_rtr : std_logic;
@@ -101,6 +104,10 @@ begin
         can_valid <= '0';
         wait until status(0) ='0';
         report "DOIT" & integer'image(can_tx_out_len);
+        write(out_l,integer'image(can_tx_out_len));
+        write(out_l,String'(" "));
+        hwrite(out_l,can_tx_out);
+        writeline(testbench_out,out_l);
     end loop;
     wait; -- will wait forever
   end process tb; 
