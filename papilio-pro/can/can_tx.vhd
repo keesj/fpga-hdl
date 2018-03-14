@@ -193,10 +193,16 @@ begin
                                 can_tx_state <= can_state_crc;
                             end if;
                         when can_state_crc =>
-                            if can_bit_counter = 1 then
+                            if can_bit_counter = 0 then
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
                                 shift_buff(127 downto 112) <= crc_data & '0';
+
+                                -- hack it up
+                                can_phy_tx_buf <= crc_data(14);
+                                shift_buff(127 downto 113) <= crc_data(13 downto 0) & '0';
+                                bit_shift_one_bits(0) <= crc_data(14);
+                                bit_shift_zero_bits(0) <= crc_data(14);
                             end if;
                             if can_bit_counter = 15 then
 
