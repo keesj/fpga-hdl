@@ -128,8 +128,8 @@ begin
                 can_bit_counter <= (others => '0');
                 can_tx_state <= can_state_start_of_frame;
                 --reset stuffing (enable is done in SOF)
-                bit_shift_one_bits <= (others => '0');
-                bit_shift_zero_bits  <= (others => '1');
+                bit_shift_one_bits <= "00000";
+                bit_shift_zero_bits  <= "11111";
                 crc_rst <= '1';
             elsif can_signal_set = '1' then
 
@@ -137,8 +137,8 @@ begin
                 
                 if needs_stuffing = '1' then
                     report "STUFFING";
-                    bit_shift_one_bits <= (others => '0');
-                    bit_shift_zero_bits  <= (others => '1');
+                    bit_shift_one_bits <= "00001";
+                    bit_shift_zero_bits  <="11110";
                 else
                     --shift bits for the next round
                     shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";
