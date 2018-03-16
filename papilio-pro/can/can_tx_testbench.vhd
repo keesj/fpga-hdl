@@ -82,6 +82,8 @@ begin
     variable can_in_dlc : std_logic_vector(3 downto 0);  
     variable can_in_data : std_logic_vector(63 downto 0);
     variable can_in_crc : std_logic_vector(14 downto 0);
+    variable can_out_len_expected : std_logic_vector(7 downto 0);
+    variable can_tx_out_expected :  std_logic_vector(126 downto 0);
   begin
 
     wait for 10 ns; -- wait until global set/reset completes
@@ -91,7 +93,8 @@ begin
         read(l,  can_in_rtr);
         hread(l, can_in_dlc);
         hread(l, can_in_data);
-        hread(l, can_in_crc);
+        hread(l, can_out_len_expected);
+        hread(l, can_tx_out_expected);
 
         can_id(31 downto 21) <= can_in_id;
         can_id(0) <= can_in_rtr;
@@ -103,9 +106,13 @@ begin
         wait until falling_edge(clk);
         can_valid <= '0';
         wait until status(0) ='0';
-        report "DOIT" & integer'image(can_tx_out_len);
---        write(out_l,integer'image(can_tx_out_len));
---        write(out_l,String'(" "));
+        
+        -- now check len and value
+        assert (std_logic_vector(to_unsigned(can_tx_out_len,8)) = can_out_len_expected) report "Unexpexted length "  & to_hstring(to_unsigned(can_tx_out_len,8)) & " " & to_hstring(can_out_len_expected);
+        assert (can_tx_out = can_tx_out_expected) report "Unexpected contents " & to_hstring(can_tx_out) & " " & to_hstring(can_tx_out_expected);
+        --write recieved length and data
+        hwrite(out_l,std_logic_vector(to_unsigned(can_tx_out_len,8)));
+        write(out_l,String'(" "));
         hwrite(out_l,can_tx_out);
         
     end loop;
