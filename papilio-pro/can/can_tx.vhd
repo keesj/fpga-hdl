@@ -195,10 +195,16 @@ begin
                         when can_state_crc =>
                             if can_bit_counter = 0 then
                                 can_crc_buf <= crc_data;
-                                --Add to send buffer
-                                shift_buff(127 downto 112) <= crc_data & '0';
 
-                                -- hack it up
+                                -- hack it up. I do not know how to do this currently
+                                -- The main problem is that in normal situation we fill the
+                                -- fifo buffer  but in this case the crc is only kown after sending the
+                                -- last bite. hence in this case we directly get the crc value
+                                -- and put it on the tx_buf. Because of that we also push on bit
+                                -- less on the fifo buffer.
+                                --for short we can not do
+                                --shift_buff(127 downto 112) <= crc_data & '0';
+
                                 can_phy_tx_buf <= crc_data(14);
                                 shift_buff(127 downto 113) <= crc_data(13 downto 0) & '0';
                                 bit_shift_one_bits(0) <= crc_data(14);
