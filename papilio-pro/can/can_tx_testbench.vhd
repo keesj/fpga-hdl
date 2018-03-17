@@ -88,6 +88,9 @@ begin
 
     wait for 10 ns; -- wait until global set/reset completes
     while not endfile(testbench_data) loop
+        --ID  R 
+        --00d 0 8 436f707972696768 6F 7FFF8234421B7B83E2E4D2CED1D1F07F # https://github.com/EliasOenal/sigrok-dumps/blob/master/can/arbitrary_traffic/bsd_license_can_standard_500k.logicdata
+
         readline(testbench_data,l);
         hread(l, can_in_id);
         read(l,  can_in_rtr);

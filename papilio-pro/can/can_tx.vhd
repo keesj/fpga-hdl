@@ -212,7 +212,7 @@ begin
                             end if;
                             if can_bit_counter = 15 then
 
-                                can_bit_counter <= (others => '0');
+                            can_bit_counter <= (others => '0');
                                 can_tx_state <= can_state_ack_delimiter;
                                 crc_rst <= '1';
                                 -- push ack slot and delimiter
