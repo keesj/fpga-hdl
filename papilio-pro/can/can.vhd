@@ -23,7 +23,7 @@ end can;
 architecture behavior of can is
 
   -- Signals
-  signal can_bus_value: std_logic := '0';            --The current value on the can bus
+  signal can_clk_sync: std_logic := '0';            --The current value on the can bus
   signal can_clk_sample_set_clk: std_logic := '0';   --Sync Signal to set a value on the can bus
   signal can_clk_sample_check_clk: std_logic := '0'; --Sync Signal to check a value on the can bus
   signal can_clk_sample_get_clk: std_logic := '0';   --Sync Signal to read the value of a signal
@@ -35,7 +35,7 @@ begin
   can_clk: entity work.can_clk port map(
     clk => clk ,
     rst => rst,
-    can_bus_value => can_bus_value ,
+    can_clk_sync => can_clk_sync ,
     can_sample_set_clk => can_clk_sample_set_clk ,
     can_sample_check_clk => can_clk_sample_check_clk ,
     can_sample_get_clk => can_clk_sample_get_clk 

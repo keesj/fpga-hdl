@@ -8,8 +8,12 @@ entity can_rx is
             can_dlc        : out  std_logic_vector (3 downto 0);
             can_data       : out  std_logic_vector (63 downto 0);
             can_valid      : out  std_logic;
+            can_clr        : in std_logic; -- allow to recieve a frame
             status         : out std_logic_vector (31 downto 0);
             can_signal_get : in std_logic; -- signal to set/change a value on the bus
+            can_clk_sync   : out std_logic; -- signal to synchronize the clock with values on the bus
+            can_phy_tx     : out  std_logic; -- needed to ack
+            can_phy_tx_en  : out  std_logic; -- needed to ack 
             can_phy_rx     : in std_logic
     );
 end can_rx;
@@ -18,11 +22,9 @@ architecture rtl of can_rx is
     signal can_id_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
-
     signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
-    
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
-    signal shift_buff_current : std_logic_vector (127 downto 0) := (others => '0');
+    signal buff_current : std_logic_vector (127 downto 0) := (others => '0');
     -- Counter used to count the bits sent
     signal can_bit_counter : unsigned (7 downto 0) := (others => '0');
     
@@ -92,7 +94,8 @@ begin
     -- For crc we never take stuffing into account and look at the current bit sent out
     crc_din <= shift_buff(127);
     
-    shift_buff_current <= current_rx_value & shift_buff(126 downto 0);
+    -- this forms the buffer we want to look into looking at the current values of the buffer
+    buff_current <= current_rx_value & shift_buff(126 downto 0);
 
     count: process(clk)
     begin
@@ -100,19 +103,20 @@ begin
             -- For crc we need to assert the signal only for one clock cycle hence we reset
             -- to 0 every cycle
             crc_ce <= '0';
-
-            if can_phy_rx ='1' and can_rx_state = can_state_idle then
-                report "CAN START";
-
+            
+            if can_clr = '1' then
+                report "CAN CLEAR";
                 -- Empty internal buffers
                 can_id_buf <= (others => '0');
                 can_dlc_buf <= (others => '0');
                 can_data_buf <= (others => '0');
-                
+            end if;
+
+            if can_phy_rx ='1' and (can_rx_state = can_state_idle) then
+                report "CAN START";
                 -- and prepare next fields
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
-                shift_buff <= (others => '0');
-                
+                shift_buff <= (others => '0');    
                 can_bit_counter <= (others => '0');
                 can_rx_state <= can_state_start_of_frame;
                 --reset stuffing (enable is done in SOF)
@@ -127,7 +131,7 @@ begin
                     bit_shift_zero_bits  <= (others => '1');
                 else
                     --shift bits in
-                    shift_buff(127 downto 0) <=shift_buff_current;
+                    shift_buff(127 downto 0) <= buff_current;
                     bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & current_rx_value;
                     bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & current_rx_value;
 
@@ -152,8 +156,8 @@ begin
                                 --prare next state
                                 --shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
                                 can_id_buf <= (others => '0');
-                                can_id_buf(31 downto 21) <= shift_buff_current(126 downto 116);
-                                can_id_buf(0)<= shift_buff_current(115);
+                                can_id_buf(31 downto 21) <= buff_current(126 downto 116);
+                                can_id_buf(0)<= buff_current(115);
 
                                 can_bit_counter <=(others => '0');
                                 can_rx_state <= can_state_control;
@@ -207,7 +211,7 @@ begin
                             stuffing_enabled <='0';
                             if can_bit_counter = 6 then
                                 can_rx_state <= can_state_idle;
-                            end if;
+                            end if;                            
                     end case;
                 end if;
             end if;

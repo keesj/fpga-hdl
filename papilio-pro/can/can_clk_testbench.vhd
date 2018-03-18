@@ -10,7 +10,7 @@ architecture behavior of can_clk_testbench is
   -- Inputs
   signal clk : std_logic := '0';
   signal rst : std_logic := '0';
-  signal can_bus_value: std_logic := '0';
+  signal can_clk_sync: std_logic := '0';
   
    -- Outputs
   signal can_sample_set_clk: std_logic := '0';
@@ -25,7 +25,7 @@ architecture behavior of can_clk_testbench is
   uut: entity work.can_clk port map(
     clk => clk ,
     rst => rst,
-    can_bus_value => can_bus_value ,
+    can_clk_sync => can_clk_sync ,
     can_sample_set_clk => can_sample_set_clk ,
     can_sample_check_clk => can_sample_check_clk ,
     can_sample_get_clk => can_sample_get_clk 

@@ -117,9 +117,9 @@ begin
         hwrite(out_l,std_logic_vector(to_unsigned(can_tx_out_len,8)));
         write(out_l,String'(" "));
         hwrite(out_l,can_tx_out);
-        
+        writeline(testbench_out,out_l);        
     end loop;
-    writeline(testbench_out,out_l);
+
     wait; -- will wait forever
   end process tb; 
 end;
