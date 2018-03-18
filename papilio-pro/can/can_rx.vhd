@@ -93,7 +93,7 @@ begin
     current_rx_value <= can_phy_rx;
     -- For crc we never take stuffing into account and look at the current bit sent out
     crc_din <= shift_buff(127);
-    
+
     -- this forms the buffer we want to look into looking at the current values of the buffer
     buff_current <= current_rx_value & shift_buff(126 downto 0);
 
@@ -103,7 +103,7 @@ begin
             -- For crc we need to assert the signal only for one clock cycle hence we reset
             -- to 0 every cycle
             crc_ce <= '0';
-            
+            can_clk_sync <= '0';
             if can_clr = '1' then
                 report "CAN CLEAR";
                 -- Empty internal buffers
@@ -112,7 +112,8 @@ begin
                 can_data_buf <= (others => '0');
             end if;
 
-            if can_phy_rx ='1' and (can_rx_state = can_state_idle) then
+            -- starting happens starting with a 0 bit value
+            if can_phy_rx ='0' and (can_rx_state = can_state_idle) then
                 report "CAN START";
                 -- and prepare next fields
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
@@ -123,8 +124,9 @@ begin
                 bit_shift_one_bits <= (others => '0');
                 bit_shift_zero_bits  <= (others => '1');
                 crc_rst <= '1';
+                can_clk_sync <= '1';
             elsif can_signal_get = '1' then
-                
+                --report "STATE " & can_states'image(can_rx_state);
                 if needs_stuffing = '1' and stuffing_enabled ='1' then
                     report "RX STUFFING(SKIPPING)";
                     bit_shift_one_bits <= (others => '0');
@@ -150,11 +152,12 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_arbitration;
                         when can_state_arbitration =>
-                            report "AR bites";
+                            report "AR bytes";
                             crc_ce <= '1';
                             if can_bit_counter = 11  then
                                 --prare next state
                                 --shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
+                                report "AR DONE " &  to_hstring(buff_current(126 downto 116));
                                 can_id_buf <= (others => '0');
                                 can_id_buf(31 downto 21) <= buff_current(126 downto 116);
                                 can_id_buf(0)<= buff_current(115);

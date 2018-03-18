@@ -170,7 +170,7 @@ begin
                                 can_tx_state <= can_state_control;
                             end if;
                         when can_state_control =>
-                            report "Control bites";
+                            report "Control bytes";
                             crc_ce <= '1';
                             if can_bit_counter = 5 then
                                 can_bit_counter <=(others => '0');
