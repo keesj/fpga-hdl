@@ -36,7 +36,7 @@ architecture rtl of can_rx is
     --But not in the CRC delimiter, ACK, and end of frame fields.
     signal bit_shift_one_bits : std_logic_vector(4 downto 0) := (others =>'0');
     signal bit_shift_zero_bits : std_logic_vector(4 downto 0) := (others => '1');
-    alias can_logic_bit_next : std_logic is shift_buff(127);
+    --alias can_logic_bit_next : std_logic is shift_buff(127);
 
     ---- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
     -- Code kept here as as start of extended mode support
@@ -92,10 +92,10 @@ begin
 
     current_rx_value <= can_phy_rx;
     -- For crc we never take stuffing into account and look at the current bit sent out
-    crc_din <= shift_buff(127);
+    crc_din <= shift_buff(0);
 
     -- this forms the buffer we want to look into looking at the current values of the buffer
-    buff_current <= current_rx_value & shift_buff(126 downto 0);
+    buff_current <= shift_buff(126 downto 0) & current_rx_value;
 
     count: process(clk)
     begin
@@ -115,6 +115,7 @@ begin
             -- starting happens starting with a 0 bit value
             if can_phy_rx ='0' and (can_rx_state = can_state_idle) then
                 report "CAN START";
+                stuffing_enabled <='1';
                 -- and prepare next fields
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
                 shift_buff <= (others => '0');    
@@ -122,15 +123,15 @@ begin
                 can_rx_state <= can_state_start_of_frame;
                 --reset stuffing (enable is done in SOF)
                 bit_shift_one_bits <= (others => '0');
-                bit_shift_zero_bits  <= (others => '1');
+                bit_shift_zero_bits  <= (0=>'0' , others => '1');
                 crc_rst <= '1';
                 can_clk_sync <= '1';
             elsif can_signal_get = '1' then
-                --report "STATE " & can_states'image(can_rx_state);
+                --report "STATE " & can_states'image(can_rx_state) ;
                 if needs_stuffing = '1' and stuffing_enabled ='1' then
                     report "RX STUFFING(SKIPPING)";
                     bit_shift_one_bits <= (others => '0');
-                    bit_shift_zero_bits  <= (others => '1');
+                    bit_shift_zero_bits  <= (0=>'0', others => '1');
                 else
                     --shift bits in
                     shift_buff(127 downto 0) <= buff_current;
@@ -154,19 +155,19 @@ begin
                         when can_state_arbitration =>
                             report "AR bytes";
                             crc_ce <= '1';
-                            if can_bit_counter = 11  then
+                            if can_bit_counter = 10  then
                                 --prare next state
                                 --shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
-                                report "AR DONE " &  to_hstring(buff_current(126 downto 116));
+                                report "AR DONE " &  to_hstring(buff_current(11 downto 1));
                                 can_id_buf <= (others => '0');
-                                can_id_buf(31 downto 21) <= buff_current(126 downto 116);
-                                can_id_buf(0)<= buff_current(115);
+                                can_id_buf(31 downto 21) <= buff_current(11 downto 1);
+                                can_id_buf(0)<= buff_current(0);
 
                                 can_bit_counter <=(others => '0');
                                 can_rx_state <= can_state_control;
                             end if;
                         when can_state_control =>
-                            report "Control bites";
+                            report "Control bytes";
                             crc_ce <= '1';
                             if can_bit_counter = 5 then
                                 can_bit_counter <=(others => '0');

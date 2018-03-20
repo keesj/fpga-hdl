@@ -19,7 +19,7 @@ architecture behavior of can_rx_testbench is
     signal can_clk_sync   :   std_logic := '0';
     signal can_phy_tx     :   std_logic:= '0';
     signal can_phy_tx_en  :   std_logic:= '0';
-    signal can_phy_rx     :  std_logic:= '0';
+    signal can_phy_rx     :  std_logic:= '1';
 
 
     signal can_tx_out         : std_logic_vector(126 downto 0) := (others =>'1');
@@ -70,7 +70,7 @@ begin
             end if;
             if can_signal_set ='1'  then
                 if can_tx_out_len > 0 then
-                    report "SHIFT";
+                    --report "SHIFT";
                     can_phy_rx     <= can_tx_out(126);
                     can_tx_out     <= can_tx_out(125 downto 0) & '1';
                     can_tx_out_len <= can_tx_out_len -1;
