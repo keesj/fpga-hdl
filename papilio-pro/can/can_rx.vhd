@@ -162,7 +162,6 @@ begin
                                 can_id_buf <= (others => '0');
                                 can_id_buf(31 downto 21) <= buff_current(11 downto 1);
                                 can_id_buf(0)<= buff_current(0);
-
                                 can_bit_counter <=(others => '0');
                                 can_rx_state <= can_state_control;
                             end if;
@@ -170,8 +169,10 @@ begin
                             report "Control bytes";
                             crc_ce <= '1';
                             if can_bit_counter = 5 then
+                                report "DLC " &  to_hstring(buff_current(3 downto 0));
+                                can_dlc_buf <= buff_current(3 downto 0);
                                 can_bit_counter <=(others => '0');
-                                if can_dlc_buf = "0000" then
+                                if buff_current(3 downto 0) = "0000" then
                                     can_rx_state <= can_state_crc;
                                     -- the next bit is going to be the CRC do not update crc
                                     crc_ce <= '0';
