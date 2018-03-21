@@ -193,6 +193,7 @@ begin
                                 can_tx_state <= can_state_crc;
                             end if;
                         when can_state_crc =>
+                            report "CRC";
                             if can_bit_counter = 0 then
                                 can_crc_buf <= crc_data;
 
@@ -226,6 +227,7 @@ begin
                             can_tx_state <= can_state_eof;
                             shift_buff(127 downto 121) <= "1111111";
                         when can_state_eof =>
+                            report "EOF";
                             -- disable stuffing for those bits
                             stuffing_enabled <='0';
                             if can_bit_counter = 6 then

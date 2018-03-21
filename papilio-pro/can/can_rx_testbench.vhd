@@ -70,7 +70,7 @@ begin
             end if;
             if can_signal_set ='1'  then
                 if can_tx_out_len > 0 then
-                    --report "SHIFT";
+                    report "SHIFT";
                     can_phy_rx     <= can_tx_out(126);
                     can_tx_out     <= can_tx_out(125 downto 0) & '1';
                     can_tx_out_len <= can_tx_out_len -1;
@@ -113,6 +113,7 @@ begin
 
         can_tx_out_len_input <= to_integer(unsigned(can_out_len_to_send));
         --can_tx_out_len_input <= 15;
+        can_tx_out_len_input <= 128;
         can_tx_out_input <= can_tx_out_to_send;
         
 

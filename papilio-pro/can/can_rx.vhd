@@ -186,11 +186,18 @@ begin
                             
                             if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1 then
                                 -- the next bit is going to be the CRC do not update crc
+                                for i in 1 to 8 loop
+                                    if i = unsigned(can_dlc_buf) then
+                                        can_data_buf((i * 8) -1 downto 0) <=   buff_current((i * 8) -1 downto 0);
+                                    end if;
+                                end loop;
+                                
                                 crc_ce <= '0';
                                 can_bit_counter <= (others => '0');
                                 can_rx_state <= can_state_crc;
                             end if;
                         when can_state_crc =>
+                            report "CRC";
                             if can_bit_counter = 1 then
                                 can_crc_buf <= crc_data;
                                 --Add to send buffer
