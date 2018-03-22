@@ -64,13 +64,11 @@ begin
         if rising_edge(clk) 
         then
             if can_clr = '1' then
-                report "Set base value";
                 can_tx_out     <= can_tx_out_input;
                 can_tx_out_len <= can_tx_out_len_input;
-            end if;
-            if can_signal_set ='1'  then
+                report "Set base value " & integer'image(can_tx_out_len_input);
+            elsif can_signal_set ='1'  then
                 if can_tx_out_len > 0 then
-                    report "SHIFT";
                     can_phy_rx     <= can_tx_out(126);
                     can_tx_out     <= can_tx_out(125 downto 0) & '1';
                     can_tx_out_len <= can_tx_out_len -1;
@@ -110,18 +108,16 @@ begin
         hread(l, can_out_len_to_send);
         hread(l, can_tx_out_to_send);
 
-
         can_tx_out_len_input <= to_integer(unsigned(can_out_len_to_send));
         --can_tx_out_len_input <= 15;
         can_tx_out_len_input <= 128;
         can_tx_out_input <= can_tx_out_to_send;
-        
+
 
         can_clr <= '1'; 
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         can_clr <= '0';
-
         wait until status(0) ='0';
 
         assert (can_in_id_expected = can_id(31 downto 21)) report "Unexpexted ID "  & to_hstring(can_in_id_expected) & " " & to_hstring(can_id(31 downto 21));
