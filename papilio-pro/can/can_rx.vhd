@@ -23,6 +23,7 @@ architecture rtl of can_rx is
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
     signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
+    signal can_crc_buf_recieved : std_logic_vector (14 downto 0) := (others => '0');
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
     signal buff_current : std_logic_vector (127 downto 0) := (others => '0');
     -- Counter used to count the bits sent
@@ -184,7 +185,7 @@ begin
                             report "Data";
                             crc_ce <= '1';
                             
-                            if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1 then
+                            if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1   then
                                 -- the next bit is going to be the CRC do not update crc
                                 for i in 1 to 8 loop
                                     if i = unsigned(can_dlc_buf) then
@@ -192,19 +193,17 @@ begin
                                     end if;
                                 end loop;
                                 
-                                crc_ce <= '0';
+                                crc_ce <= '1';
                                 can_bit_counter <= (others => '0');
                                 can_rx_state <= can_state_crc;
                             end if;
                         when can_state_crc =>
                             report "CRC";
                             if can_bit_counter = 1 then
-                                can_crc_buf <= crc_data;
-                                --Add to send buffer
-                                shift_buff(127 downto 112) <= crc_data & '0';
+                                can_crc_buf <= crc_data;-- this is the recalculated recived buffer
                             end if;
                             if can_bit_counter = 15 then
-
+                                can_crc_buf_recieved <= buff_current(14 downto 0);
                                 can_bit_counter <= (others => '0');
                                 can_rx_state <= can_state_ack_delimiter;
                                 crc_rst <= '1';
