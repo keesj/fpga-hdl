@@ -130,7 +130,7 @@ begin
                 --report "STATE " & can_states'image(can_rx_state) ;
                 if needs_stuffing = '1' and stuffing_enabled ='1' then
                     report "RX STUFFING(SKIPPING)";
-                    bit_shift_one_bits <= (others => '0');
+                    bit_shift_one_bits <= (0=> '1' , others => '0');
                     bit_shift_zero_bits  <= (0=>'0', others => '1');
                 else
                     --shift bits in
