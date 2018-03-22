@@ -202,7 +202,7 @@ begin
                             if can_bit_counter = 1 then
                                 can_crc_buf <= crc_data;-- this is the recalculated recived buffer
                             end if;
-                            if can_bit_counter = 15 then
+                            if can_bit_counter = 14 then
                                 can_crc_buf_recieved <= buff_current(14 downto 0);
                                 can_bit_counter <= (others => '0');
                                 can_rx_state <= can_state_ack_delimiter;
@@ -216,7 +216,6 @@ begin
                         when can_state_ack_delimiter => 
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_eof;
-                            shift_buff(127 downto 121) <= "1111111";
                         when can_state_eof =>
                             -- disable stuffing for those bits
                             stuffing_enabled <='0';
