@@ -111,6 +111,7 @@ begin
                 can_id_buf <= (others => '0');
                 can_dlc_buf <= (others => '0');
                 can_data_buf <= (others => '0');
+                can_valid <= '0';
             end if;
 
             -- starting happens starting with a 0 bit value
@@ -217,6 +218,10 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_eof;
                         when can_state_eof =>
+                            can_id <= can_id_buf;
+                            can_dlc <= can_dlc_buf;
+                            can_data <= can_data_buf;
+                            can_valid <= '1';
                             -- disable stuffing for those bits
                             stuffing_enabled <='0';
                             if can_bit_counter = 6 then

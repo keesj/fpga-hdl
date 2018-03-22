@@ -123,8 +123,12 @@ begin
         can_clr <= '0';
 
         wait until status(0) ='0';
-        report "DONE";
+
+        assert (can_in_id_expected = can_id(31 downto 21)) report "Unexpexted ID "  & to_hstring(can_in_id_expected) & " " & to_hstring(can_id(31 downto 21));
+        assert (can_in_dlc_expected = can_dlc) report "Unexpexted DLC "  & to_hstring(can_in_dlc_expected) & " " & to_hstring(can_dlc);
+        assert (can_in_data_expected = can_data) report "Unexpexted DATA "  & to_hstring(can_in_data_expected) & " " & to_hstring(can_data);
     end loop;
+    report "DONE";
     wait; -- will wait forever
   end process tb; 
 end;
