@@ -215,6 +215,11 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_ack_delimiter;
                         when can_state_ack_delimiter => 
+                            if can_crc_buf_recieved = can_crc_buf then
+                                report "CRC MATCH";
+                            else 
+                                report "CRC ERROR";
+                            end if;
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_eof;
                         when can_state_eof =>
