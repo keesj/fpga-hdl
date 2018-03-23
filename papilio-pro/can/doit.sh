@@ -25,4 +25,4 @@ done
 ghdl -r --ieee=synopsys --std=08 can_tx_testbench --vcd=can_tx_testbench.vcd --stop-time=30us 
 ghdl -r --ieee=synopsys --std=08 can_rx_testbench --vcd=can_rx_testbench.vcd --stop-time=30us 
 #./to_raw.py
-#sigrok-cli --input-format binary --input-file out --output-file out.p
+#sigrok-cli --input-format binary:samplerate=1 --input-file out --output-file out.sr
