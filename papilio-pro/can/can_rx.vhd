@@ -144,6 +144,7 @@ begin
                 crc_rst <= '1';
                 can_clk_sync <= '1';
             elsif can_signal_get = '1' then
+                can_phy_ack_req <='0'; -- if can_phy_ack_req was set put it back to 0 after on can frame time
                 --report "STATE " & can_states'image(can_rx_state) ;
                 if bit_stuffing_required = '1' and bit_stuffing_en ='1' then
                     report "RX STUFFING(SKIPPING)";
@@ -221,7 +222,7 @@ begin
                             if can_bit_counter = 14 then
                                 can_crc_rx_buf <= buff_current(14 downto 0);
                                 can_bit_counter <= (others => '0');
-                                can_rx_state <= can_state_ack_delimiter;
+                                can_rx_state <= can_state_ack_slot;
                                 crc_rst <= '1';
                                 -- push ack slot and delimiter
                                 shift_buff(127 downto 126) <= "0" & "1";
@@ -231,6 +232,7 @@ begin
                             can_rx_state <= can_state_ack_delimiter;
                             if can_crc_rx_buf = can_crc_calculated then
                                 report "CRC MATCH";
+                                can_phy_ack_req <= '1';
                             else 
                                 report "CRC ERROR";
                             end if;
