@@ -63,8 +63,8 @@ architecture rtl of can_tx is
 
     signal can_tx_state: can_states := can_state_idle;
 
-    signal needs_stuffing : std_logic := '0';
-    signal stuffing_value : std_logic := '0';
+    signal bit_stuffing_required : std_logic := '0';
+    signal bit_stuffing_value : std_logic := '0';
     signal next_tx_value : std_logic := '0';
     signal stuffing_enabled : std_logic := '1';
 
@@ -94,11 +94,11 @@ begin
     status(31 downto 1) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
-    needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
-    stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
+    bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
+    bit_stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 
     -- determine the next value to shift (either the head of the fifo buffer or the stuffing value)
-    next_tx_value <= stuffing_value when needs_stuffing = '1' else shift_buff(127);
+    next_tx_value <= bit_stuffing_value when bit_stuffing_required = '1' else shift_buff(127);
     -- For crc we never take stuffing into account and look at the current bit sent out
     crc_din <= shift_buff(127);
     
@@ -135,7 +135,7 @@ begin
 
                 can_phy_tx_buf <= next_tx_value ;
                 
-                if needs_stuffing = '1' then
+                if bit_stuffing_required = '1' then
                     report "STUFFING";
                     bit_shift_one_bits <= "00001";
                     bit_shift_zero_bits  <="11110";

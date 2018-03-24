@@ -38,6 +38,7 @@ architecture rtl of can_rx is
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
     signal can_valid_buf    : std_logic := '0';
 
+    --buffer for filter values (are read on can_clr)
     signal can_id_filter_buf       : std_logic_vector (31 downto 0) := (others => '0');
     signal can_id_filter_mask_buf  : std_logic_vector (31 downto 0) := (others => '0');
 
@@ -49,6 +50,8 @@ architecture rtl of can_rx is
     signal can_crc_calculated : std_logic_vector (14 downto 0) := (others => '0');
     
 
+    --Those are the previous and current buffer where the current buffer equals
+    -- the previous buffer + the current rx value
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
     signal buff_current : std_logic_vector (127 downto 0) := (others => '0');
 
@@ -82,8 +85,8 @@ architecture rtl of can_rx is
 
     signal can_rx_state: can_states := can_state_idle;
 
-    signal needs_stuffing : std_logic := '0';
-    signal stuffing_value : std_logic := '0';
+    signal bit_stuffing_required : std_logic := '0';
+    signal bit_stuffing_value : std_logic := '0';
     signal current_rx_value : std_logic := '0';
 
     signal stuffing_enabled : std_logic := '1';
@@ -111,12 +114,11 @@ begin
 
     -- status / next state logic
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
-    status(0) <= '0' when can_rx_state = can_state_idle else '1';
-    status(31 downto 1) <= (others => '0');
+    status <= (0=>'0', others => '0') when can_rx_state = can_state_idle else (0=>'1', others => '0');
 
     -- The bit shift buffers are filled for evey bit time
-    needs_stuffing <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
-    stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
+    bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
+    bit_stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 
     current_rx_value <= can_phy_rx;
     -- For crc we never take stuffing into account and look at the current bit sent out
@@ -159,7 +161,7 @@ begin
                 can_clk_sync <= '1';
             elsif can_signal_get = '1' then
                 --report "STATE " & can_states'image(can_rx_state) ;
-                if needs_stuffing = '1' and stuffing_enabled ='1' then
+                if bit_stuffing_required = '1' and stuffing_enabled ='1' then
                     report "RX STUFFING(SKIPPING)";
                     bit_shift_one_bits <= (0=> '1' , others => '0');
                     bit_shift_zero_bits  <= (0=>'0', others => '1');
