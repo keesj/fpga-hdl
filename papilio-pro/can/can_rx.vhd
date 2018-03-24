@@ -36,6 +36,11 @@ architecture rtl of can_rx is
     signal can_id_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
+    signal can_valid_buf    : std_logic := '0';
+
+    --tx out buffers
+    signal can_phy_tx_buf    : std_logic := '0';
+    signal can_phy_tx_en_buf : std_logic := '0';
 
     -- this is the calculated crc value based on the incomming bits
     signal can_crc_calculated : std_logic_vector (14 downto 0) := (others => '0');
@@ -86,9 +91,12 @@ architecture rtl of can_rx is
     signal crc_data : std_logic_vector(14 downto 0);
 begin
 
-    can_id <= can_id_buf;
-    can_dlc <= can_dlc_buf;
-    can_data <= can_data_buf;
+    can_id    <= can_id_buf;
+    can_dlc   <= can_dlc_buf;
+    can_data  <= can_data_buf;
+    can_valid <= can_valid_buf;
+    can_phy_tx <= can_phy_tx_buf;
+    can_phy_tx_en <= can_phy_tx_en_buf;
 
     crc: entity work.can_crc port map(
         clk => clk,
@@ -127,7 +135,7 @@ begin
                 can_id_rx_buf <= (others => '0');
                 can_dlc_rx_buf <= (others => '0');
                 can_data_rx_buf <= (others => '0');
-                can_valid <= '0';
+                can_valid_buf <= '0';
             end if;
 
             -- starting happens starting with a 0 bit value
@@ -242,7 +250,7 @@ begin
                             can_id_buf <= can_id_rx_buf;
                             can_dlc_buf <= can_dlc_rx_buf;
                             can_data_buf <= can_data_rx_buf;
-                            can_valid <= '1';
+                            can_valid_buf <= '1';
                             -- disable stuffing for those bits
                             stuffing_enabled <='0';
                             if can_bit_counter = 6 then
