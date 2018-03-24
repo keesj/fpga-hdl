@@ -3,27 +3,36 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity can_rx is
-    port (  clk            : in  std_logic;            
-            can_id         : out  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
-            can_dlc        : out  std_logic_vector (3 downto 0);
-            can_data       : out  std_logic_vector (63 downto 0);
-            can_valid      : out  std_logic;
-            can_clr        : in std_logic; -- allow to recieve a frame
-            status         : out std_logic_vector (31 downto 0);
-            can_signal_get : in std_logic; -- signal to set/change a value on the bus
-            can_clk_sync   : out std_logic; -- signal to synchronize the clock with values on the bus
-            can_phy_tx     : out  std_logic; -- needed to ack
-            can_phy_tx_en  : out  std_logic; -- needed to ack 
-            can_phy_rx     : in std_logic
+    port (  clk                 : in  std_logic;            
+            can_id              : out  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
+            can_dlc             : out  std_logic_vector (3 downto 0);
+            can_data            : out  std_logic_vector (63 downto 0);
+            can_valid           : out  std_logic;
+
+            can_clr             : in std_logic; -- allow to recieve a frame
+            status              : out std_logic_vector (31 downto 0);
+
+            can_id_filter       : out  std_logic_vector (31 downto 0);
+            can_id_filter_mask  : out  std_logic_vector (31 downto 0);
+
+            can_signal_get      : in std_logic; -- signal to set/change a value on the bus
+            can_clk_sync        : out std_logic; -- signal to synchronize the clock with values on the bus
+            can_phy_tx          : out  std_logic; -- needed to ack
+            can_phy_tx_en       : out  std_logic; -- needed to ack 
+            can_phy_rx          : in std_logic
     );
 end can_rx;
 
 architecture rtl of can_rx is
+
+    -- can_*_buf are used to keep the locally recieved bits from can
     signal can_id_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
-    signal can_crc_buf : std_logic_vector (14 downto 0) := (others => '0');
-    signal can_crc_buf_recieved : std_logic_vector (14 downto 0) := (others => '0');
+    signal can_crc_buf  : std_logic_vector (14 downto 0) := (others => '0');
+
+    signal can_crc_calculated : std_logic_vector (14 downto 0) := (others => '0');
+    
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
     signal buff_current : std_logic_vector (127 downto 0) := (others => '0');
     -- Counter used to count the bits sent
@@ -201,10 +210,10 @@ begin
                         when can_state_crc =>
                             report "CRC";
                             if can_bit_counter = 1 then
-                                can_crc_buf <= crc_data;-- this is the recalculated recived buffer
+                                can_crc_calculated <= crc_data;-- this is the recalculated recived buffer
                             end if;
                             if can_bit_counter = 14 then
-                                can_crc_buf_recieved <= buff_current(14 downto 0);
+                                can_crc_buf <= buff_current(14 downto 0);
                                 can_bit_counter <= (others => '0');
                                 can_rx_state <= can_state_ack_delimiter;
                                 crc_rst <= '1';
@@ -215,7 +224,7 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_ack_delimiter;
                         when can_state_ack_delimiter => 
-                            if can_crc_buf_recieved = can_crc_buf then
+                            if can_crc_buf = can_crc_calculated then
                                 report "CRC MATCH";
                             else 
                                 report "CRC ERROR";
