@@ -31,7 +31,7 @@ architecture rtl of can_rx is
     signal can_data_rx_buf : std_logic_vector (63 downto 0) := (others => '0');
     signal can_crc_rx_buf  : std_logic_vector (14 downto 0) := (others => '0');
 
-    --buffers for the can_id can can_dlc and can_data_out so we can initialize them
+    --buffers for the can_id can can_dlc and can_data_out so we can initialize them(we might start using rst signal for this)
     signal can_id_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
@@ -241,12 +241,12 @@ begin
                         when can_state_ack_slot =>
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_ack_delimiter;
-                        when can_state_ack_delimiter => 
                             if can_crc_rx_buf = can_crc_calculated then
                                 report "CRC MATCH";
                             else 
                                 report "CRC ERROR";
                             end if;
+                        when can_state_ack_delimiter =>
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_eof;
                         when can_state_eof =>
