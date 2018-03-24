@@ -17,8 +17,7 @@ entity can_rx is
 
             can_signal_get      : in  std_logic; -- signal to set/change a value on the bus
             can_clk_sync        : out std_logic; -- signal to synchronize the clock with values on the bus
-            can_phy_tx          : out std_logic; -- needed to ack
-            can_phy_tx_en       : out std_logic; -- needed to ack 
+            can_phy_ack_req     : out std_logic; -- request to send an ack request the next bit time
             can_phy_rx          : in  std_logic
     );
 end can_rx;
@@ -41,9 +40,10 @@ architecture rtl of can_rx is
     signal can_id_filter_buf       : std_logic_vector (31 downto 0) := (others => '0');
     signal can_id_filter_mask_buf  : std_logic_vector (31 downto 0) := (others => '0');
 
-    --tx out buffers
-    signal can_phy_tx_buf    : std_logic := '0';
-    signal can_phy_tx_en_buf : std_logic := '0';
+    --We use to have the tx line here but timing of this module (the time of sampling)
+    --Does not match the timing to send bits so instead we redirect this responsability
+    --to an ohter module
+    signal can_phy_ack_req    : std_logic := '0';
 
     -- this is the calculated crc value based on the incomming bits
     signal can_crc_calculated : std_logic_vector (14 downto 0) := (others => '0');
@@ -98,8 +98,6 @@ begin
     can_dlc   <= can_dlc_buf;
     can_data  <= can_data_buf;
     can_valid <= can_valid_buf;
-    can_phy_tx <= can_phy_tx_buf;
-    can_phy_tx_en <= can_phy_tx_en_buf;
 
     crc: entity work.can_crc port map(
         clk => clk,
