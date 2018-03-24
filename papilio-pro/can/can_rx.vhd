@@ -26,16 +26,19 @@ end can_rx;
 architecture rtl of can_rx is
 
     -- can_*_buf are used to keep the locally recieved bits from can
-    signal can_id_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
-    signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
-    signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
-    signal can_crc_buf  : std_logic_vector (14 downto 0) := (others => '0');
+    signal can_id_rx_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
+    signal can_dlc_rx_buf  : std_logic_vector (3 downto 0) := (others => '0');
+    signal can_data_rx_buf : std_logic_vector (63 downto 0) := (others => '0');
+    signal can_crc_rx_buf  : std_logic_vector (14 downto 0) := (others => '0');
 
+    -- this is the calculated crc value based on the incomming bits
     signal can_crc_calculated : std_logic_vector (14 downto 0) := (others => '0');
     
+
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
     signal buff_current : std_logic_vector (127 downto 0) := (others => '0');
-    -- Counter used to count the bits sent
+
+    -- Counter used to count the bits recieved
     signal can_bit_counter : unsigned (7 downto 0) := (others => '0');
     
 
@@ -46,15 +49,9 @@ architecture rtl of can_rx is
     --But not in the CRC delimiter, ACK, and end of frame fields.
     signal bit_shift_one_bits : std_logic_vector(4 downto 0) := (others =>'0');
     signal bit_shift_zero_bits : std_logic_vector(4 downto 0) := (others => '1');
-    --alias can_logic_bit_next : std_logic is shift_buff(127);
-
-    ---- sff(11 bit) and eff (29 bit)  is set in the msb  of can_id
-    -- Code kept here as as start of extended mode support
-    --alias  can_sff_buf  : std_logic_vector is can_id_buf(10 downto 0) ;
-    --alias  can_eff_buf  : std_logic is can_id_buf(31);
-
+   
     -- The lsb of the can_id register signifies a can rtr packet
-    alias  can_rtr  : std_logic is can_id_buf(30);
+    alias  can_rtr_rx_buf  : std_logic is can_id_rx_buf(30);
 
     -- State
     type can_states is (
@@ -117,9 +114,9 @@ begin
             if can_clr = '1' then
                 report "CAN CLEAR";
                 -- Empty internal buffers
-                can_id_buf <= (others => '0');
-                can_dlc_buf <= (others => '0');
-                can_data_buf <= (others => '0');
+                can_id_rx_buf <= (others => '0');
+                can_dlc_rx_buf <= (others => '0');
+                can_data_rx_buf <= (others => '0');
                 can_valid <= '0';
             end if;
 
@@ -170,9 +167,9 @@ begin
                                 --prare next state
                                 --shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
                                 report "AR DONE " &  to_hstring(buff_current(11 downto 1));
-                                can_id_buf <= (others => '0');
-                                can_id_buf(31 downto 21) <= buff_current(11 downto 1);
-                                can_id_buf(0)<= buff_current(0);
+                                can_id_rx_buf <= (others => '0');
+                                can_id_rx_buf(31 downto 21) <= buff_current(11 downto 1);
+                                can_rtr_rx_buf<= buff_current(0);
                                 can_bit_counter <=(others => '0');
                                 can_rx_state <= can_state_control;
                             end if;
@@ -181,7 +178,7 @@ begin
                             crc_ce <= '1';
                             if can_bit_counter = 5 then
                                 report "DLC " &  to_hstring(buff_current(3 downto 0));
-                                can_dlc_buf <= buff_current(3 downto 0);
+                                can_dlc_rx_buf <= buff_current(3 downto 0);
                                 can_bit_counter <=(others => '0');
                                 if buff_current(3 downto 0) = "0000" then
                                     can_rx_state <= can_state_crc;
@@ -195,11 +192,11 @@ begin
                             report "Data";
                             crc_ce <= '1';
                             
-                            if can_bit_counter = (8 * unsigned(can_dlc_buf)) -1   then
+                            if can_bit_counter = (8 * unsigned(can_dlc_rx_buf)) -1   then
                                 -- the next bit is going to be the CRC do not update crc
                                 for i in 1 to 8 loop
-                                    if i = unsigned(can_dlc_buf) then
-                                        can_data_buf((i * 8) -1 downto 0) <=   buff_current((i * 8) -1 downto 0);
+                                    if i = unsigned(can_dlc_rx_buf) then
+                                        can_data_rx_buf((i * 8) -1 downto 0) <=   buff_current((i * 8) -1 downto 0);
                                     end if;
                                 end loop;
                                 
@@ -213,7 +210,7 @@ begin
                                 can_crc_calculated <= crc_data;-- this is the recalculated recived buffer
                             end if;
                             if can_bit_counter = 14 then
-                                can_crc_buf <= buff_current(14 downto 0);
+                                can_crc_rx_buf <= buff_current(14 downto 0);
                                 can_bit_counter <= (others => '0');
                                 can_rx_state <= can_state_ack_delimiter;
                                 crc_rst <= '1';
@@ -224,7 +221,7 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_ack_delimiter;
                         when can_state_ack_delimiter => 
-                            if can_crc_buf = can_crc_calculated then
+                            if can_crc_rx_buf = can_crc_calculated then
                                 report "CRC MATCH";
                             else 
                                 report "CRC ERROR";
@@ -232,9 +229,9 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_eof;
                         when can_state_eof =>
-                            can_id <= can_id_buf;
-                            can_dlc <= can_dlc_buf;
-                            can_data <= can_data_buf;
+                            can_id <= can_id_rx_buf;
+                            can_dlc <= can_dlc_rx_buf;
+                            can_data <= can_data_rx_buf;
                             can_valid <= '1';
                             -- disable stuffing for those bits
                             stuffing_enabled <='0';
