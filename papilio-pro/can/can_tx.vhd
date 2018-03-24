@@ -66,7 +66,7 @@ architecture rtl of can_tx is
     signal bit_stuffing_required : std_logic := '0';
     signal bit_stuffing_value : std_logic := '0';
     signal next_tx_value : std_logic := '0';
-    signal stuffing_enabled : std_logic := '1';
+    signal bit_stuffing_en : std_logic := '1';
 
     signal crc_din : std_logic := '0';
     signal crc_ce : std_logic := '0';
@@ -94,7 +94,7 @@ begin
     status(31 downto 1) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
-    bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
+    bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and bit_stuffing_en = '1'  else '0';
     bit_stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 
     -- determine the next value to shift (either the head of the fifo buffer or the stuffing value)
@@ -151,11 +151,11 @@ begin
                         when can_state_idle =>
                             --report "IDLE";
                             can_phy_tx_en_buf <= '0';
-                            stuffing_enabled <='0';
+                            bit_stuffing_en <='0';
                             crc_ce <= '0';
                         when can_state_start_of_frame =>
                             report "SOF";
-                            stuffing_enabled <='1';
+                            bit_stuffing_en <='1';
                             can_phy_tx_en_buf <= '1';
                             crc_ce <= '1';
                             --perpare next state
@@ -229,7 +229,7 @@ begin
                         when can_state_eof =>
                             report "EOF";
                             -- disable stuffing for those bits
-                            stuffing_enabled <='0';
+                            bit_stuffing_en <='0';
                             if can_bit_counter = 6 then
                                 can_tx_state <= can_state_idle;
                                 can_phy_tx_en_buf <= '0';

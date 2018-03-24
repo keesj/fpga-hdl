@@ -86,10 +86,7 @@ architecture rtl of can_rx is
 
     signal bit_stuffing_required : std_logic := '0';
     signal bit_stuffing_value : std_logic := '0';
-
-
-
-    signal stuffing_enabled : std_logic := '1';
+    signal bit_stuffing_en : std_logic := '1';
 
     signal crc_din : std_logic := '0';
     signal crc_ce : std_logic := '0';
@@ -117,7 +114,7 @@ begin
     status <= (0=>'0', others => '0') when can_rx_state = can_state_idle else (0=>'1', others => '0');
 
     -- The bit shift buffers are filled for evey bit time
-    bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
+    bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and bit_stuffing_en = '1'  else '0';
     bit_stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 
     -- For crc we never take stuffing into account and look at the current bit sent out
@@ -147,7 +144,7 @@ begin
             -- starting happens starting with a 0 bit value
             if can_phy_rx ='0' and (can_rx_state = can_state_idle) then
                 report "CAN START";
-                stuffing_enabled <='1';
+                bit_stuffing_en <='1';
                 -- and prepare next fields
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
                 shift_buff <= (others => '0');    
@@ -160,7 +157,7 @@ begin
                 can_clk_sync <= '1';
             elsif can_signal_get = '1' then
                 --report "STATE " & can_states'image(can_rx_state) ;
-                if bit_stuffing_required = '1' and stuffing_enabled ='1' then
+                if bit_stuffing_required = '1' and bit_stuffing_en ='1' then
                     report "RX STUFFING(SKIPPING)";
                     bit_shift_one_bits <= (0=> '1' , others => '0');
                     bit_shift_zero_bits  <= (0=>'0', others => '1');
@@ -175,11 +172,11 @@ begin
                     case can_rx_state is
                         when can_state_idle =>
                             --report "IDLE";
-                            stuffing_enabled <='0';
+                            bit_stuffing_en <='0';
                             crc_ce <= '0';
                         when can_state_start_of_frame =>
                             report "SOF";
-                            stuffing_enabled <='1';
+                            bit_stuffing_en <='1';
                             crc_ce <= '1';
                             --perpare next state
                             can_bit_counter <= (others => '0');
@@ -258,7 +255,7 @@ begin
                             can_data_buf <= can_data_rx_buf;
                             can_valid_buf <= '1';
                             -- disable stuffing for those bits
-                            stuffing_enabled <='0';
+                            bit_stuffing_en <='0';
                             if can_bit_counter = 6 then
                                 can_rx_state <= can_state_idle;
                             end if;                            
