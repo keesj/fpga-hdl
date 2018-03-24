@@ -3,23 +3,23 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity can_rx is
-    port (  clk                 : in  std_logic;            
+    port (  clk                 : in   std_logic;            
             can_id              : out  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
             can_dlc             : out  std_logic_vector (3 downto 0);
             can_data            : out  std_logic_vector (63 downto 0);
             can_valid           : out  std_logic;
 
-            can_clr             : in std_logic; -- allow to recieve a frame
+            can_clr             : in  std_logic; -- allow to recieve a frame
             status              : out std_logic_vector (31 downto 0);
 
             can_id_filter       : in  std_logic_vector (31 downto 0);
             can_id_filter_mask  : in  std_logic_vector (31 downto 0);
 
-            can_signal_get      : in std_logic; -- signal to set/change a value on the bus
+            can_signal_get      : in  std_logic; -- signal to set/change a value on the bus
             can_clk_sync        : out std_logic; -- signal to synchronize the clock with values on the bus
-            can_phy_tx          : out  std_logic; -- needed to ack
-            can_phy_tx_en       : out  std_logic; -- needed to ack 
-            can_phy_rx          : in std_logic
+            can_phy_tx          : out std_logic; -- needed to ack
+            can_phy_tx_en       : out std_logic; -- needed to ack 
+            can_phy_rx          : in  std_logic
     );
 end can_rx;
 
@@ -30,7 +30,6 @@ architecture rtl of can_rx is
     signal can_dlc_rx_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_rx_buf : std_logic_vector (63 downto 0) := (others => '0');
     signal can_crc_rx_buf  : std_logic_vector (14 downto 0) := (others => '0');
-
 
     --buffers for the can_id can can_dlc and can_data_out so we can initialize them
     signal can_id_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
@@ -87,7 +86,8 @@ architecture rtl of can_rx is
 
     signal bit_stuffing_required : std_logic := '0';
     signal bit_stuffing_value : std_logic := '0';
-    signal current_rx_value : std_logic := '0';
+
+
 
     signal stuffing_enabled : std_logic := '1';
 
@@ -120,12 +120,11 @@ begin
     bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and stuffing_enabled = '1'  else '0';
     bit_stuffing_value <= '0' when  bit_shift_one_bits = "11111"  else '1';
 
-    current_rx_value <= can_phy_rx;
     -- For crc we never take stuffing into account and look at the current bit sent out
     crc_din <= shift_buff(0);
 
     -- this forms the buffer we want to look into looking at the current values of the buffer
-    buff_current <= shift_buff(126 downto 0) & current_rx_value;
+    buff_current <= shift_buff(126 downto 0) & can_phy_rx;
 
     count: process(clk)
     begin
@@ -167,9 +166,9 @@ begin
                     bit_shift_zero_bits  <= (0=>'0', others => '1');
                 else
                     --shift bits in
-                    shift_buff(127 downto 0) <= buff_current;
-                    bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & current_rx_value;
-                    bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & current_rx_value;
+                    shift_buff <= buff_current;
+                    bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & can_phy_rx;
+                    bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & can_phy_rx;
 
                     can_bit_counter <= can_bit_counter +1; 
                     crc_rst <= '0';
