@@ -12,8 +12,8 @@ entity can_rx is
             can_clr             : in std_logic; -- allow to recieve a frame
             status              : out std_logic_vector (31 downto 0);
 
-            can_id_filter       : out  std_logic_vector (31 downto 0);
-            can_id_filter_mask  : out  std_logic_vector (31 downto 0);
+            can_id_filter       : in  std_logic_vector (31 downto 0);
+            can_id_filter_mask  : in  std_logic_vector (31 downto 0);
 
             can_signal_get      : in std_logic; -- signal to set/change a value on the bus
             can_clk_sync        : out std_logic; -- signal to synchronize the clock with values on the bus
@@ -37,6 +37,9 @@ architecture rtl of can_rx is
     signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
     signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
     signal can_valid_buf    : std_logic := '0';
+
+    signal can_id_filter_buf       : std_logic_vector (31 downto 0) := (others => '0');
+    signal can_id_filter_mask_buf  : std_logic_vector (31 downto 0) := (others => '0');
 
     --tx out buffers
     signal can_phy_tx_buf    : std_logic := '0';
@@ -136,6 +139,8 @@ begin
                 can_dlc_rx_buf <= (others => '0');
                 can_data_rx_buf <= (others => '0');
                 can_valid_buf <= '0';
+                can_id_filter_buf <= can_id_filter;
+                can_id_filter_mask_buf <= can_id_filter_mask;
             end if;
 
             -- starting happens starting with a 0 bit value

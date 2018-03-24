@@ -15,6 +15,9 @@ architecture behavior of can_rx_testbench is
     signal can_valid   :   std_logic := '0';
     signal can_clr     :   std_logic := '0';-- clear buffers
     signal status      :  std_logic_vector (31 downto 0):= (others => '0');
+
+    signal can_id_filter      :   std_logic_vector (31 downto 0) := (others => '0');
+    signal can_id_filter_mask :   std_logic_vector (31 downto 0) := (others => '0');
     signal can_signal_set : std_logic := '0';
     signal can_clk_sync   :   std_logic := '0';
     signal can_phy_tx     :   std_logic:= '0';
@@ -40,6 +43,8 @@ begin
         can_valid  => can_valid,
         can_clr => can_clr,
         status     => status,
+        can_id_filter => can_id_filter,
+        can_id_filter_mask => can_id_filter_mask,
         can_signal_get => can_signal_set,
         can_clk_sync => can_clk_sync,
         can_phy_tx  => can_phy_tx,
