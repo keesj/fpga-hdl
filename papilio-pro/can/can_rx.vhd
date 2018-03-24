@@ -4,10 +4,10 @@ use ieee.numeric_std.all;
 
 entity can_rx is
     port (  clk                 : in   std_logic;            
-            can_id              : out  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
-            can_dlc             : out  std_logic_vector (3 downto 0);
-            can_data            : out  std_logic_vector (63 downto 0);
-            can_valid           : out  std_logic;
+            can_id              : out  std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
+            can_dlc             : out  std_logic_vector (3 downto 0) := (others => '0');
+            can_data            : out  std_logic_vector (63 downto 0) := (others => '0');
+            can_valid           : out  std_logic := '0';
 
             can_clr             : in  std_logic; -- allow to recieve a frame
             status              : out std_logic_vector (31 downto 0);
@@ -16,8 +16,12 @@ entity can_rx is
             can_id_filter_mask  : in  std_logic_vector (31 downto 0);
 
             can_signal_get      : in  std_logic; -- signal to set/change a value on the bus
-            can_clk_sync        : out std_logic; -- signal to synchronize the clock with values on the bus
-            can_phy_ack_req     : out std_logic; -- request to send an ack request the next bit time
+            can_clk_sync        : out std_logic := '0'; -- signal to synchronize the clock with values on the bus
+
+            --We use to have the tx line here but timing of this module (the time of sampling)
+            --Does not match the timing to send bits so instead we redirect this responsability
+            --to an ohter module
+            can_phy_ack_req     : out std_logic := '0'; -- request to send an ack request the next bit time
             can_phy_rx          : in  std_logic
     );
 end can_rx;
@@ -30,20 +34,11 @@ architecture rtl of can_rx is
     signal can_data_rx_buf : std_logic_vector (63 downto 0) := (others => '0');
     signal can_crc_rx_buf  : std_logic_vector (14 downto 0) := (others => '0');
 
-    --buffers for the can_id can can_dlc and can_data_out so we can initialize them(we might start using rst signal for this)
-    signal can_id_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
-    signal can_dlc_buf  : std_logic_vector (3 downto 0) := (others => '0');
-    signal can_data_buf : std_logic_vector (63 downto 0) := (others => '0');
-    signal can_valid_buf    : std_logic := '0';
 
     --buffer for filter values (are read on can_clr)
     signal can_id_filter_buf       : std_logic_vector (31 downto 0) := (others => '0');
     signal can_id_filter_mask_buf  : std_logic_vector (31 downto 0) := (others => '0');
 
-    --We use to have the tx line here but timing of this module (the time of sampling)
-    --Does not match the timing to send bits so instead we redirect this responsability
-    --to an ohter module
-    signal can_phy_ack_req    : std_logic := '0';
 
     -- this is the calculated crc value based on the incomming bits
     signal can_crc_calculated : std_logic_vector (14 downto 0) := (others => '0');
@@ -94,11 +89,6 @@ architecture rtl of can_rx is
     signal crc_data : std_logic_vector(14 downto 0);
 begin
 
-    can_id    <= can_id_buf;
-    can_dlc   <= can_dlc_buf;
-    can_data  <= can_data_buf;
-    can_valid <= can_valid_buf;
-
     crc: entity work.can_crc port map(
         clk => clk,
         din => crc_din,
@@ -134,7 +124,7 @@ begin
                 can_id_rx_buf <= (others => '0');
                 can_dlc_rx_buf <= (others => '0');
                 can_data_rx_buf <= (others => '0');
-                can_valid_buf <= '0';
+                can_valid <= '0';
                 can_id_filter_buf <= can_id_filter;
                 can_id_filter_mask_buf <= can_id_filter_mask;
             end if;
@@ -248,10 +238,10 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_eof;
                         when can_state_eof =>
-                            can_id_buf <= can_id_rx_buf;
-                            can_dlc_buf <= can_dlc_rx_buf;
-                            can_data_buf <= can_data_rx_buf;
-                            can_valid_buf <= '1';
+                            can_id <= can_id_rx_buf;
+                            can_dlc <= can_dlc_rx_buf;
+                            can_data <= can_data_rx_buf;
+                            can_valid  <= '1';
                             -- disable stuffing for those bits
                             bit_stuffing_en <='0';
                             if can_bit_counter = 6 then
