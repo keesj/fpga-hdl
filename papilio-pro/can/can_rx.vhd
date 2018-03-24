@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 entity can_rx is
     port (  clk                 : in   std_logic;            
             can_id              : out  std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
-            can_dlc             : out  std_logic_vector (3 downto 0) := (others => '0');
+            can_dlc             : out  std_logic_vector (3 downto 0)  := (others => '0');
             can_data            : out  std_logic_vector (63 downto 0) := (others => '0');
             can_valid           : out  std_logic := '0';
 
@@ -39,11 +39,9 @@ architecture rtl of can_rx is
     signal can_id_filter_buf       : std_logic_vector (31 downto 0) := (others => '0');
     signal can_id_filter_mask_buf  : std_logic_vector (31 downto 0) := (others => '0');
 
-
     -- this is the calculated crc value based on the incomming bits
     signal can_crc_calculated : std_logic_vector (14 downto 0) := (others => '0');
     
-
     --Those are the previous and current buffer where the current buffer equals
     -- the previous buffer + the current rx value
     signal shift_buff : std_logic_vector (127 downto 0) := (others => '0');
@@ -107,6 +105,7 @@ begin
 
     -- For crc we never take stuffing into account and look at the current bit sent out
     crc_din <= shift_buff(0);
+    --crc_din <= can_phy_rx;
 
     -- this forms the buffer we want to look into looking at the current values of the buffer
     buff_current <= shift_buff(126 downto 0) & can_phy_rx;
