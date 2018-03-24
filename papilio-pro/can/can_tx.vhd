@@ -136,8 +136,8 @@ begin
                 
                 if bit_stuffing_required = '1' then
                     report "STUFFING";
-                    bit_shift_one_bits <= "00001";
-                    bit_shift_zero_bits  <="11110";
+                    bit_shift_one_bits <= (0=> bit_stuffing_value , others => '0');
+                    bit_shift_zero_bits  <= (0=>bit_stuffing_value, others => '1');
                 else
                     --shift bits for the next round
                     shift_buff(127 downto 0) <= shift_buff(126 downto 0) & "0";

@@ -60,7 +60,7 @@ architecture rtl of can_rx is
     signal bit_shift_zero_bits : std_logic_vector(4 downto 0) := (others => '1');
    
     -- The lsb of the can_id register signifies a can rtr packet
-    alias  can_rtr_rx_buf  : std_logic is can_id_rx_buf(30);
+    alias  can_rtr_rx_buf  : std_logic is can_id_rx_buf(0);
 
     -- State
     type can_states is (
@@ -147,8 +147,8 @@ begin
                 --report "STATE " & can_states'image(can_rx_state) ;
                 if bit_stuffing_required = '1' and bit_stuffing_en ='1' then
                     report "RX STUFFING(SKIPPING)";
-                    bit_shift_one_bits <= (0=> '1' , others => '0');
-                    bit_shift_zero_bits  <= (0=>'0', others => '1');
+                    bit_shift_one_bits <= (0=> bit_stuffing_value , others => '0');
+                    bit_shift_zero_bits  <= (0=>bit_stuffing_value, others => '1');
                 else
                     --shift bits in
                     shift_buff <= buff_current;
