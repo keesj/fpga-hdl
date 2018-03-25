@@ -25,6 +25,24 @@ architecture behavior of can_testbench is
     signal can0_phy_tx_en :  std_logic;
     signal can0_phy_rx    :  std_logic;
 
+    signal can1_can_sample_rate :  std_logic_vector (31 downto 0) := (others => '0'); --
+    signal can1_rst :  std_logic;
+    signal can1_can_tx_id    :  std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
+    signal can1_can_tx_dlc   :  std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
+    signal can1_can_tx_data  :  std_logic_vector (63 downto 0) := (others => '0'); -- data
+    signal can1_can_tx_valid :  std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
+    signal can1_can_rx_id    :  std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
+    signal can1_can_rx_dlc   :  std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
+    signal can1_can_rx_data  :  std_logic_vector (63 downto 0) := (others => '0'); -- data
+    signal can1_can_rx_valid :  std_logic := '0';    --Sync that the data is valid
+    signal can1_can_rx_drr   :  std_logic := '0';     --rx data read ready (the fields can be invaludated and a new frame can be accepter)
+    signal can1_can_status   :  std_logic_vector (31 downto 0) := (others => '0');
+    signal can1_can_rx_id_filter       :   std_logic_vector (31 downto 0) := (others => '0');
+    signal can1_can_rx_id_filter_mask  :   std_logic_vector (31 downto 0) := (others => '0');
+    signal can1_phy_tx    :  std_logic;
+    signal can1_phy_tx_en :  std_logic;
+    signal can1_phy_rx    :  std_logic;
+
     constant clk_period : time := 10 ns;
 begin
 
@@ -49,6 +67,30 @@ begin
         phy_rx    => can0_phy_rx
     );
 
+    uut1: entity work.can port map(
+        clk => clk,
+        rst => can1_rst,
+        can_sample_rate=> can1_can_sample_rate,
+        can_tx_id  => can1_can_tx_id,
+        can_tx_dlc => can1_can_tx_dlc,
+        can_tx_data => can1_can_tx_data,
+        can_tx_valid => can1_can_tx_valid,
+        can_rx_id  => can1_can_rx_id,
+        can_rx_dlc => can1_can_rx_dlc,
+        can_rx_data => can1_can_rx_data,
+        can_rx_valid => can1_can_rx_valid,
+        can_rx_drr => can1_can_rx_drr,
+        can_status => can1_can_status,
+        can_rx_id_filter => can1_can_rx_id_filter,
+        can_rx_id_filter_mask => can1_can_rx_id_filter_mask,
+        phy_tx  => can1_phy_tx,
+        phy_tx_en => can1_phy_tx_en,
+        phy_rx    => can1_phy_rx
+    );
+
+    --wire up (we should add the can_phy in here)
+    can1_phy_rx <= can0_phy_tx;
+
     clk_process : process
     begin
         clk <= '0';
@@ -59,13 +101,31 @@ begin
 
     can0_test : process
     begin
-        --reset
+
+        --reset can busses
         can0_rst <= '1';
+        can1_rst <= '1';
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         can0_rst <= '0';
+        can1_rst <= '0';
+
         --set sample rate
         can0_can_sample_rate <=  std_logic_vector(to_unsigned(0,32));
+        can1_can_sample_rate <=  std_logic_vector(to_unsigned(0,32));
+
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+
+        --prepare to recieve some data
+        can1_can_rx_drr <= '1';
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+        can1_can_rx_drr <= '0';
+
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+
 
         can0_can_tx_id(31 downto 21) <= "11100001111";
         can0_can_tx_id(0) <= '0';
@@ -76,9 +136,6 @@ begin
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         can0_can_tx_valid <= '0';
-
-
-
 
         wait until can0_can_status(1) ='0';
         wait;
