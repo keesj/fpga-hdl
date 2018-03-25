@@ -5,7 +5,8 @@ entity can_testbench is
 end can_testbench;
 
 architecture behavior of can_testbench is
-    signal can0_clk :  std_logic;
+    signal clk :  std_logic;
+
     signal can0_rst :  std_logic;
     signal can0_can_tx_id    :  std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
     signal can0_can_tx_dlc   :  std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
@@ -22,10 +23,12 @@ architecture behavior of can_testbench is
     signal can0_phy_tx    :  std_logic;
     signal can0_phy_tx_en :  std_logic;
     signal can0_phy_rx    :  std_logic;
+
+    constant clk_period : time := 10 ns;
 begin
 
     uut: entity work.can port map(
-        clk => can0_clk,
+        clk => clk,
         rst => can0_rst,
         can_tx_id  => can0_can_tx_id,
         can_tx_dlc => can0_can_tx_dlc,
@@ -43,4 +46,12 @@ begin
         phy_tx_en => can0_phy_tx_en,
         phy_rx    => can0_phy_rx
     );
+
+    clk_process : process
+    begin
+        clk <= '0';
+        wait for clk_period/2;
+        clk <= '1';
+        wait for clk_period/2;
+    end process;
 end;
