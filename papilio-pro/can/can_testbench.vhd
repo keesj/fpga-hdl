@@ -28,7 +28,7 @@ architecture behavior of can_testbench is
     constant clk_period : time := 10 ns;
 begin
 
-    uut: entity work.can port map(
+    uut0: entity work.can port map(
         clk => clk,
         rst => can0_rst,
         can_sample_rate=> can0_can_sample_rate,
@@ -44,7 +44,7 @@ begin
         can_status => can0_can_status,
         can_rx_id_filter => can0_can_rx_id_filter,
         can_rx_id_filter_mask => can0_can_rx_id_filter_mask,
-        phy_tx  => can0_phy_rx,
+        phy_tx  => can0_phy_tx,
         phy_tx_en => can0_phy_tx_en,
         phy_rx    => can0_phy_rx
     );
@@ -77,7 +77,8 @@ begin
         wait until falling_edge(clk);
         can0_can_tx_valid <= '0';
 
-        
+
+
 
         wait until can0_can_status(1) ='0';
         wait;
