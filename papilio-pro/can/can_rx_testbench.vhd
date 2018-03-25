@@ -13,7 +13,7 @@ architecture behavior of can_rx_testbench is
     signal can_dlc     :   std_logic_vector (3 downto 0) := (others => '0');
     signal can_data    :   std_logic_vector (63 downto 0) := (others => '0');
     signal can_valid   :   std_logic := '0';
-    signal can_clr     :   std_logic := '0';-- clear buffers
+    signal can_drr     :   std_logic := '0';-- clear buffers
     signal status      :  std_logic_vector (31 downto 0):= (others => '0');
 
     signal can_id_filter      :   std_logic_vector (31 downto 0) := (others => '0');
@@ -40,7 +40,7 @@ begin
         can_dlc => can_dlc,
         can_data   => can_data,
         can_valid  => can_valid,
-        can_clr => can_clr,
+        can_drr => can_drr,
         status     => status,
         can_id_filter => can_id_filter,
         can_id_filter_mask => can_id_filter_mask,
@@ -66,7 +66,7 @@ begin
    begin
         if rising_edge(clk) 
         then
-            if can_clr = '1' then
+            if can_drr = '1' then
                 can_tx_out     <= can_tx_out_input;
                 can_tx_out_len <= can_tx_out_len_input;
                 report "Set base value " & integer'image(can_tx_out_len_input);
@@ -117,10 +117,10 @@ begin
         can_tx_out_input <= can_tx_out_to_send;
 
 
-        can_clr <= '1'; 
+        can_drr <= '1'; 
         wait until rising_edge(clk);
         wait until falling_edge(clk);
-        can_clr <= '0';
+        can_drr <= '0';
         wait until status(0) ='0';
 
         assert (can_in_id_expected = can_id(31 downto 21)) 

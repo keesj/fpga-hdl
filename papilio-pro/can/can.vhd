@@ -18,7 +18,7 @@ entity can is
         can_rx_dlc   : out std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
         can_rx_data  : out std_logic_vector (63 downto 0) := (others => '0'); -- data
         can_rx_valid : out std_logic := '0';    --Sync that the data is valid
-        can_rx_rrd   : in std_logic := '0';     --rx data read ready (the fields can be invaludated and a new frame can be accepter)
+        can_rx_drr   : in std_logic := '0';     --rx data read ready (the fields can be invaludated and a new frame can be accepter)
 
         -- can_rx_filter
         can_rx_id_filter       : in  std_logic_vector (31 downto 0) := (others => '0');
@@ -75,7 +75,7 @@ begin
     can_dlc => can_rx_dlc,    
     can_data => can_rx_data,
     can_valid => can_rx_valid,
-    can_clr  =>   can_rx_rrd,
+    can_drr  =>   can_rx_drr,
     status  => can_rx_status,
     can_id_filter => can_rx_id_filter,
     can_id_filter_mask => can_rx_id_filter_mask,

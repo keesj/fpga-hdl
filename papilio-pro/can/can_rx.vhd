@@ -9,7 +9,7 @@ entity can_rx is
             can_data            : out  std_logic_vector (63 downto 0) := (others => '0');
             can_valid           : out  std_logic := '0';
 
-            can_clr             : in  std_logic; -- allow to recieve a frame
+            can_drr             : in  std_logic; -- allow to recieve a frame
             status              : out std_logic_vector (31 downto 0);
 
             can_id_filter       : in  std_logic_vector (31 downto 0);
@@ -35,7 +35,7 @@ architecture rtl of can_rx is
     signal can_crc_rx_buf  : std_logic_vector (14 downto 0) := (others => '0');
 
 
-    --buffer for filter values (are read on can_clr)
+    --buffer for filter values (are read on can_drr)
     signal can_id_filter_buf       : std_logic_vector (31 downto 0) := (others => '0');
     signal can_id_filter_mask_buf  : std_logic_vector (31 downto 0) := (others => '0');
 
@@ -117,7 +117,7 @@ begin
             -- to 0 every cycle
             crc_ce <= '0';
             can_clk_sync <= '0';
-            if can_clr = '1' then
+            if can_drr = '1' then
                 report "CAN CLEAR";
                 -- Empty internal buffers
                 can_id_rx_buf <= (others => '0');
