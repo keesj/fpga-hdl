@@ -65,8 +65,22 @@ begin
         wait until falling_edge(clk);
         can0_rst <= '0';
         --set sample rate
-        can0_can_sample_rate <=  std_logic_vector(to_unsigned(50,32));
+        can0_can_sample_rate <=  std_logic_vector(to_unsigned(0,32));
+
+        can0_can_tx_id(31 downto 21) <= "11100001111";
+        can0_can_tx_id(0) <= '0';
+        can0_can_tx_dlc <= x"8";
+        can0_can_tx_data <= x"0001020304050607";
+
+        can0_can_tx_valid <= '1'; 
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+        can0_can_tx_valid <= '0';
+
         
+
+        wait until can0_can_status(1) ='0';
+        wait;
         --set sample rate
 
     end process;
