@@ -13,6 +13,17 @@ entity can is
         can_tx_data  : in std_logic_vector (63 downto 0) := (others => '0'); -- data
         can_tx_valid : in std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
 
+        --can RX related
+        can_rx_id    : out std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
+        can_rx_dlc   : out std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
+        can_rx_data  : out std_logic_vector (63 downto 0) := (others => '0'); -- data
+        can_rx_valid : out std_logic := '0';    --Sync that the data is valid
+        can_rx_rrd   : in std_logic := '0';     --rx data read ready (the fields can be invaludated and a new frame can be accepter)
+
+        -- can_rx_filter
+        can_rx_id_filter       : in  std_logic_vector (31 downto 0) := (others => '0');
+        can_rx_id_filter_mask  : in  std_logic_vector (31 downto 0) := (others => '0');
+
         -- phy signals
         phy_tx    : out std_logic;
         phy_tx_en : out std_logic;
@@ -23,12 +34,15 @@ end can;
 architecture behavior of can is
 
   -- Signals
-  signal can_clk_sync: std_logic := '0';            --The current value on the can bus
+  signal can_clk_sync: std_logic := '0';            -- Start of frame detected
   signal can_clk_sample_set_clk: std_logic := '0';   --Sync Signal to set a value on the can bus
   signal can_clk_sample_check_clk: std_logic := '0'; --Sync Signal to check a value on the can bus
   signal can_clk_sample_get_clk: std_logic := '0';   --Sync Signal to read the value of a signal
 
+  signal can_phy_ack_req: std_logic := '0'; --Signal from the rx module to the tx module to send an ack bit
+
   signal can_tx_status : std_logic_vector (31 downto 0):= (others => '0'); --transmit status
+  signal can_rx_status : std_logic_vector (31 downto 0):= (others => '0'); --recieve status
 begin
 
   -- can clock generation 
@@ -54,4 +68,20 @@ begin
         can_phy_tx_en  => phy_tx_en,
         can_phy_rx     => phy_rx
     );
+    
+  can_rx: entity work.can_rx port map(
+    clk => clk,
+    can_id => can_rx_id,
+    can_dlc => can_rx_dlc,    
+    can_data => can_rx_data,
+    can_valid => can_rx_valid,
+    can_clr  =>   can_rx_rrd,
+    status  => can_rx_status,
+    can_id_filter => can_rx_id_filter,
+    can_id_filter_mask => can_rx_id_filter_mask,
+    can_signal_get => can_clk_sample_get_clk,
+    can_clk_sync   => can_clk_sync, --sync signal from the recieve module to the clock module
+    can_phy_ack_req => can_phy_ack_req,
+    can_phy_rx   => phy_rx
+  );
 end;
