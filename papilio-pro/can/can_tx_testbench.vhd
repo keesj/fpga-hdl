@@ -110,8 +110,12 @@ begin
         wait until status(0) ='0';
         
         -- now check len and value
-        assert (std_logic_vector(to_unsigned(can_tx_out_len,8)) = can_out_len_expected) report "Unexpexted length "  & to_hstring(to_unsigned(can_tx_out_len,8)) & " " & to_hstring(can_out_len_expected);
-        assert (can_tx_out = can_tx_out_expected) report "Unexpected contents " & to_hstring(can_tx_out) & " " & to_hstring(can_tx_out_expected);
+        assert (std_logic_vector(to_unsigned(can_tx_out_len,8)) = can_out_len_expected) 
+          report "Unexpexted length (expected="   & to_hstring(can_out_len_expected) & ", actual=" & to_hstring(to_unsigned(can_tx_out_len,8)) & ") "
+          severity failure;
+        assert (can_tx_out = can_tx_out_expected) 
+          report "Unexpected contents " & to_hstring(can_tx_out) & " " & to_hstring(can_tx_out_expected)
+          severity failure;
         --write recieved length and data
         hwrite(out_l,std_logic_vector(to_unsigned(can_tx_out_len,8)));
         write(out_l,String'(" "));
