@@ -1,12 +1,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity can_testbench is
 end can_testbench;
 
 architecture behavior of can_testbench is
     signal clk :  std_logic;
-
+    signal can0_can_sample_rate :  std_logic_vector (31 downto 0) := (others => '0'); --
     signal can0_rst :  std_logic;
     signal can0_can_tx_id    :  std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
     signal can0_can_tx_dlc   :  std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
@@ -30,6 +31,7 @@ begin
     uut: entity work.can port map(
         clk => clk,
         rst => can0_rst,
+        can_sample_rate=> can0_can_sample_rate,
         can_tx_id  => can0_can_tx_id,
         can_tx_dlc => can0_can_tx_dlc,
         can_tx_data => can0_can_tx_data,
@@ -53,5 +55,19 @@ begin
         wait for clk_period/2;
         clk <= '1';
         wait for clk_period/2;
+    end process;
+
+    can0_test : process
+    begin
+        --reset
+        can0_rst <= '1';
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+        can0_rst <= '0';
+        --set sample rate
+        can0_can_sample_rate <=  std_logic_vector(to_unsigned(50,32));
+        
+        --set sample rate
+
     end process;
 end;

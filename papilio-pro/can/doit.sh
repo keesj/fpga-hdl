@@ -21,8 +21,8 @@ do
 done
 
 
-#ghdl  -r --ieee=synopsys --std=08 can_crc_testbench --vcd=can_crc_testbench.vcd --stop-time=1ms && \
-#ghdl -r --ieee=synopsys --std=08 can_clk_testbench --vcd=can_clk_testbench.vcd --stop-time=3ms && \
+ghdl  -r --ieee=synopsys --std=08 can_crc_testbench --vcd=can_crc_testbench.vcd --stop-time=1ms && \
+ghdl -r --ieee=synopsys --std=08 can_clk_testbench --vcd=can_clk_testbench.vcd --stop-time=3ms && \
 ghdl -r --ieee=synopsys --std=08 can_tx_testbench --vcd=can_tx_testbench.vcd --stop-time=30us 
 ghdl -r --ieee=synopsys --std=08 can_rx_testbench --vcd=can_rx_testbench.vcd --stop-time=30us 
 ghdl -r --ieee=synopsys --std=08 can_testbench --vcd=can_testbench.vcd --stop-time=30us 

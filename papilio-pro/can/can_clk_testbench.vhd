@@ -7,6 +7,7 @@ end can_clk_testbench;
 
 architecture behavior of can_clk_testbench is 
 
+  signal quanta_clk_count : std_logic_vector(31 downto 0) := (1=>'0' , others =>'0');
   -- Inputs
   signal clk : std_logic := '0';
   signal rst : std_logic := '0';
@@ -25,6 +26,7 @@ architecture behavior of can_clk_testbench is
   uut: entity work.can_clk port map(
     clk => clk ,
     rst => rst,
+    quanta_clk_count => quanta_clk_count,
     can_clk_sync => can_clk_sync ,
     can_sample_set_clk => can_sample_set_clk ,
     can_sample_check_clk => can_sample_check_clk ,

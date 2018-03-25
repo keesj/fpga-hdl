@@ -43,19 +43,20 @@ begin
                 if counter = 0 then
                     counter <= to_integer(unsigned(quanta_clk_count));
                     quanta_counter <= quanta_counter +1;
-                    if quanta_counter = 10 then
-                    quanta_counter <= 0;
+                    if quanta_counter = 9 then
+                      quanta_counter <= 0;
                     end if;
 
                     if 
                         quanta_counter = 0 
                     then
                         can_sample_set_clk_buf <= '1';
-                    elsif  quanta_counter = 8 
-                    then
-                        can_sample_get_clk_buf <= '1';
-                    else 
+                    else
                         can_sample_check_clk_buf <= '1';
+                        if  quanta_counter = 7 
+                        then
+                          can_sample_get_clk_buf <= '1';
+                        end if;
                     end if;
                 end if;
             end if; 

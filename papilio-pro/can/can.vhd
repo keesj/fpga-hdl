@@ -7,6 +7,9 @@ entity can is
         clk : in std_logic;
         rst : in std_logic;
         
+
+        can_sample_rate : in std_logic_vector(31 downto 0) := (0=>'1' , others => '0');
+        
         --can TX related
         can_tx_id    : in std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
         can_tx_dlc   : in std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
@@ -47,6 +50,7 @@ architecture behavior of can is
   signal can_rx_status : std_logic_vector (31 downto 0):= (others => '0'); --recieve status
 begin
 
+  quanta_clk_count <= can_sample_rate;
   --make can_status 0 the rx busy  and can_status 1 the tx_busy
   can_status(0) <= can_rx_status(0);
   can_status(1) <= can_tx_status(0);
@@ -61,7 +65,7 @@ begin
     can_sample_check_clk => can_clk_sample_check_clk ,
     can_sample_get_clk => can_clk_sample_get_clk 
   );
-
+  
   -- can sending of messages
   can_tx: entity work.can_tx port map(
         clk => clk, 
