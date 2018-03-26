@@ -89,7 +89,7 @@ begin
     );
 
     --wire up (we should add the can_phy in here)
-    can1_phy_rx <= can0_phy_tx;
+    can1_phy_rx <= can0_phy_tx when can0_phy_tx_en else '1';
 
     clk_process : process
     begin
@@ -127,10 +127,10 @@ begin
         wait until falling_edge(clk);
 
 
-        can0_can_tx_id(31 downto 21) <= "11100001111";
+        can0_can_tx_id(31 downto 21) <= "00000001101";
         can0_can_tx_id(0) <= '0';
         can0_can_tx_dlc <= x"8";
-        can0_can_tx_data <= x"0001020304050607";
+        can0_can_tx_data <= x"ff01020304050607";
 
         can0_can_tx_valid <= '1'; 
         wait until rising_edge(clk);

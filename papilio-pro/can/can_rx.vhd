@@ -129,7 +129,10 @@ begin
             end if;
 
             -- starting happens starting with a 0 bit value
-            if can_phy_rx ='0' and (can_rx_state = can_state_idle) then
+
+            --WARNING NASTY BUG  to fix: we realy want to read phy_rx on every clock cycle
+            --and not only when can_signal_get is called but currently can_clk_sync does not work
+            if can_signal_get = '1' and can_phy_rx ='0' and (can_rx_state = can_state_idle) then
                 report "CAN START";
                 bit_stuffing_en <='1';
                 -- and prepare next fields
