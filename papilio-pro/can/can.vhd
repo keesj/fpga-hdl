@@ -39,7 +39,8 @@ end can;
 architecture behavior of can is
 
   -- Signals
-  signal can_clk_sync: std_logic := '0';            -- Start of frame detected
+  signal can_rx_clk_sync: std_logic := '0';            -- Start of frame detected
+  signal can_rx_clk_sync_en : std_logic := '1';            -- Start of frame detected
   signal can_clk_sample_set_clk: std_logic := '0';   --Sync Signal to set a value on the can bus
   signal can_clk_sample_check_clk: std_logic := '0'; --Sync Signal to check a value on the can bus
   signal can_clk_sample_get_clk: std_logic := '0';   --Sync Signal to read the value of a signal
@@ -50,7 +51,7 @@ architecture behavior of can is
   signal can_rx_status : std_logic_vector (31 downto 0):= (others => '0'); --recieve status
 begin
 
-  quanta_clk_count <= can_sample_rate;
+  
   --make can_status 0 the rx busy  and can_status 1 the tx_busy
   can_status(0) <= can_rx_status(0);
   can_status(1) <= can_tx_status(0);
@@ -60,7 +61,7 @@ begin
     clk => clk ,
     rst => rst,
     quanta_clk_count => quanta_clk_count,
-    can_clk_sync => can_clk_sync ,
+    can_rx_clk_sync => can_rx_clk_sync ,
     can_sample_set_clk => can_clk_sample_set_clk ,
     can_sample_check_clk => can_clk_sample_check_clk ,
     can_sample_get_clk => can_clk_sample_get_clk 
@@ -91,7 +92,8 @@ begin
     can_id_filter => can_rx_id_filter,
     can_id_filter_mask => can_rx_id_filter_mask,
     can_signal_get => can_clk_sample_get_clk,
-    can_clk_sync   => can_clk_sync, --sync signal from the recieve module to the clock module
+    can_rx_clk_sync_en   => can_rx_clk_sync_en, --sync signal from the recieve module to the clock module
+    can_rx_clk_sync   => can_rx_clk_sync, --sync signal from the recieve module to the clock module
     can_phy_ack_req => can_phy_ack_req,
     can_phy_rx   => phy_rx
   );

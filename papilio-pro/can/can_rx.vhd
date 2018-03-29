@@ -16,7 +16,9 @@ entity can_rx is
             can_id_filter_mask  : in  std_logic_vector (31 downto 0);
 
             can_signal_get      : in  std_logic; -- signal to set/change a value on the bus
-            can_clk_sync        : out std_logic := '0'; -- signal to synchronize the clock with values on the bus
+
+            can_rx_clk_sync_en     : in std_logic := '1'; -- enable syncing on changing tx input
+            can_rx_clk_sync        : out std_logic := '0'; -- signal to synchronize the clock with values on the bus
 
             --We use to have the tx line here but timing of this module (the time of sampling)
             --Does not match the timing to send bits so instead we redirect this responsability
@@ -116,7 +118,7 @@ begin
             -- For crc we need to assert the signal only for one clock cycle hence we reset
             -- to 0 every cycle
             crc_ce <= '0';
-            can_clk_sync <= '0';
+            can_rx_clk_sync <= '0';
             if can_drr = '1' then
                 report "CAN CLEAR";
                 -- Empty internal buffers
@@ -130,21 +132,28 @@ begin
 
             -- starting happens starting with a 0 bit value
 
-            --WARNING NASTY BUG  to fix: we realy want to read phy_rx on every clock cycle
-            --and not only when can_signal_get is called but currently can_clk_sync does not work
-            if can_signal_get = '1' and can_phy_rx ='0' and (can_rx_state = can_state_idle) then
+            --WARNING NASTY BUG  to fix: the state machine normally should be started by detecting
+            -- a low value 
+            if can_phy_rx ='0' and (can_rx_state = can_state_idle) then
                 report "CAN START";
                 bit_stuffing_en <='1';
                 -- and prepare next fields
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
                 shift_buff <= (others => '0');    
                 can_bit_counter <= (others => '0');
-                can_rx_state <= can_state_start_of_frame;
+                if can_rx_clk_sync_en = '1' then
+                    can_rx_state <= can_state_start_of_frame;
+                    can_rx_clk_sync <= '1';
+                else
+                    -- this sample is already the SOF bit hence directly
+                    -- go to the next state
+                    can_rx_state <= can_state_arbitration;
+                end if;
                 --reset stuffing (enable is done in SOF)
                 bit_shift_one_bits <= (others => '0');
                 bit_shift_zero_bits  <= (0=>'0' , others => '1');
                 crc_rst <= '1';
-                can_clk_sync <= '1';
+                
             elsif can_signal_get = '1' then
                 can_phy_ack_req <='0'; -- if can_phy_ack_req was set put it back to 0 after on can frame time
                 --report "STATE " & can_states'image(can_rx_state) ;
@@ -175,7 +184,7 @@ begin
                         when can_state_arbitration =>
                             report "AR bytes";
                             crc_ce <= '1';
-                            if can_bit_counter = 10  then
+                            if can_bit_counter = 11  then
                                 --prare next state
                                 --shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
                                 report "AR DONE " &  to_hstring(buff_current(11 downto 1));
@@ -183,6 +192,9 @@ begin
                                 can_id_rx_buf(31 downto 21) <= buff_current(11 downto 1);
                                 can_rtr_rx_buf<= buff_current(0);
                                 can_bit_counter <=(others => '0');
+                                --filter here if needed
+                                -- if can_id ^ can_filter_mask  = can_filter_id goto controle else goto sleep
+
                                 can_rx_state <= can_state_control;
                             end if;
                         when can_state_control =>
@@ -249,6 +261,7 @@ begin
                             -- disable stuffing for those bits
                             bit_stuffing_en <='0';
                             if can_bit_counter = 6 then
+                                crc_rst <= '1';--reset CRC for the next round
                                 can_rx_state <= can_state_idle;
                             end if;                            
                     end case;

@@ -127,7 +127,7 @@ begin
         wait until falling_edge(clk);
 
 
-        can0_can_tx_id(31 downto 21) <= "00000001101";
+        can0_can_tx_id(31 downto 21) <= "01000001101";
         can0_can_tx_id(0) <= '0';
         can0_can_tx_dlc <= x"8";
         can0_can_tx_data <= x"ff01020304050607";
@@ -138,6 +138,7 @@ begin
         can0_can_tx_valid <= '0';
 
         wait until can0_can_status(1) ='0';
+        
         wait;
         --set sample rate
 

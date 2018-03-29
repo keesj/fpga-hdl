@@ -11,7 +11,7 @@ architecture behavior of can_clk_testbench is
   -- Inputs
   signal clk : std_logic := '0';
   signal rst : std_logic := '0';
-  signal can_clk_sync: std_logic := '0';
+  signal can_rx_clk_sync: std_logic := '0';
   
    -- Outputs
   signal can_sample_set_clk: std_logic := '0';
@@ -27,7 +27,7 @@ architecture behavior of can_clk_testbench is
     clk => clk ,
     rst => rst,
     quanta_clk_count => quanta_clk_count,
-    can_clk_sync => can_clk_sync ,
+    can_rx_clk_sync => can_rx_clk_sync ,
     can_sample_set_clk => can_sample_set_clk ,
     can_sample_check_clk => can_sample_check_clk ,
     can_sample_get_clk => can_sample_get_clk 

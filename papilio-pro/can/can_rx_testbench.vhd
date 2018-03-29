@@ -19,7 +19,8 @@ architecture behavior of can_rx_testbench is
     signal can_id_filter      :   std_logic_vector (31 downto 0) := (others => '0');
     signal can_id_filter_mask :   std_logic_vector (31 downto 0) := (others => '0');
     signal can_signal_set : std_logic := '0';
-    signal can_clk_sync   :   std_logic := '0';
+    signal can_rx_clk_sync   :   std_logic := '0';
+    signal can_rx_clk_sync_en : std_logic := '0';
     signal can_phy_ack_req     :   std_logic:= '0';
     signal can_phy_rx     :  std_logic:= '1';
 
@@ -45,7 +46,8 @@ begin
         can_id_filter => can_id_filter,
         can_id_filter_mask => can_id_filter_mask,
         can_signal_get => can_signal_set,
-        can_clk_sync => can_clk_sync,
+        can_rx_clk_sync_en => can_rx_clk_sync_en,
+        can_rx_clk_sync => can_rx_clk_sync,
         can_phy_ack_req  => can_phy_ack_req,
         can_phy_rx     => can_phy_rx
     );
