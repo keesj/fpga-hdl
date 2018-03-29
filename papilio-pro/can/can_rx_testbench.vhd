@@ -124,7 +124,7 @@ begin
         wait until falling_edge(clk);
         can_drr <= '0';
         wait until status(0) ='0';
-
+        assert (status(1 downto 0) = "00") report "NON null status" severity failure;
         assert (can_in_id_expected = can_id(31 downto 21)) 
           report "Unexpexted ID (expected="  & to_hstring(can_in_id_expected) & ") actual(" & to_hstring(can_id(31 downto 21)) & ")" severity failure;
 

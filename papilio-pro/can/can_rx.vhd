@@ -87,6 +87,8 @@ architecture rtl of can_rx is
     signal crc_ce : std_logic := '0';
     signal crc_rst : std_logic := '0';
     signal crc_data : std_logic_vector(14 downto 0);
+
+    signal crc_error : std_logic := '0';
 begin
 
     crc: entity work.can_crc port map(
@@ -99,7 +101,9 @@ begin
 
     -- status / next state logic
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
-    status <= (0=>'0', others => '0') when can_rx_state = can_state_idle else (0=>'1', others => '0');
+    status(0) <='0' when can_rx_state = can_state_idle else '1';
+    status(1) <= crc_error;
+    status(31 downto 2) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
     bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and bit_stuffing_en = '1'  else '0';
@@ -128,13 +132,12 @@ begin
                 can_valid <= '0';
                 can_id_filter_buf <= can_id_filter;
                 can_id_filter_mask_buf <= can_id_filter_mask;
+                crc_error <= '0';
             end if;
 
             -- starting happens starting with a 0 bit value
 
-            --WARNING NASTY BUG  to fix: the state machine normally should be started by detecting
-            -- a low value 
-            if can_phy_rx ='0' and (can_rx_state = can_state_idle) then
+            if can_phy_rx ='0' and (can_rx_state = can_state_idle) and crc_error ='0' then
                 report "CAN START";
                 bit_stuffing_en <='1';
                 -- and prepare next fields

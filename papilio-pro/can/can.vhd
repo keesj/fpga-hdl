@@ -55,7 +55,8 @@ begin
   --make can_status 0 the rx busy  and can_status 1 the tx_busy
   can_status(0) <= can_rx_status(0);
   can_status(1) <= can_tx_status(0);
-
+  can_status(2) <= can_rx_status(1); -- crc error
+  
   -- can clock generation 
   can_clk: entity work.can_clk port map(
     clk => clk ,
