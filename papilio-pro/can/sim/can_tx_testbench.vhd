@@ -16,6 +16,7 @@ architecture behavior of can_tx_testbench is
     signal status      :  std_logic_vector (31 downto 0):= (others => '0');
     signal can_signal_set : std_logic := '0';
     signal can_signal_check : std_logic := '0';
+    signal can_signal_get : std_logic := '0';
     signal can_phy_tx     :   std_logic:= '0';
     signal can_phy_tx_en  :   std_logic:= '0';
     signal can_phy_rx     :  std_logic:= '0';
@@ -43,22 +44,30 @@ begin
     );
 
    --can_signal_set <=clk;
+   can_phy_rx <= can_phy_tx;
 
    clk_process :process
    begin
-        for i in 0 to 0 loop
+        for i in 0 to 9 loop
             if i = 0 then
               can_signal_set <= '1';
             end if;
             if i = 4 then
                 can_signal_check <= '1';
             end if;
-  
+            
+            if i = 7 then
+                can_signal_get <='1';
+            end if;
+
             clk <= '1';
             wait for clk_period/2;  --for 0.5 ns signal is '0'.
             clk <= '0';
             wait for clk_period/2;  --for next 0.5 ns signal is
 
+            if i = 7 then 
+                can_signal_get <='0';
+            end if;
             if i = 4 then
                 can_signal_check <= '0';
             end if;
@@ -73,15 +82,15 @@ begin
    begin
         if rising_edge(clk) 
         then
-            if can_signal_set ='1'  then
+            if can_signal_get ='1'  then
                 if can_phy_tx_en ='1' then
-                can_tx_out <=  can_tx_out(125 downto 0) & can_phy_tx ;
-                can_tx_out_len <= can_tx_out_len +1;
+                    can_tx_out <=  can_tx_out(125 downto 0) & can_phy_tx ;
+                    can_tx_out_len <= can_tx_out_len +1;
                 end if;
-                if can_valid = '1' then
-                    can_tx_out <= (others => '1');
-                    can_tx_out_len <=0;
-                end if;
+            end if;
+            if can_valid = '1' then
+                can_tx_out <= (others => '1');
+                can_tx_out_len <=0;
             end if;
         end if;
    end process;
@@ -127,12 +136,13 @@ begin
         wait until status(0) ='0';
         
         -- now check len and value
+
+        assert (can_tx_out = can_tx_out_expected) 
+          report "Unexpected contents (expected=" & to_hstring(can_tx_out_expected) & ", actual=" & to_hstring(can_tx_out) & ")"
+          severity failure;
         assert (std_logic_vector(to_unsigned(can_tx_out_len,8)) = can_out_len_expected) 
           report "Unexpexted length (expected="   & to_hstring(can_out_len_expected) & ", actual=" & to_hstring(to_unsigned(can_tx_out_len,8)) & ") "
-          severity failure;
-        assert (can_tx_out = can_tx_out_expected) 
-          report "Unexpected contents " & to_hstring(can_tx_out) & " " & to_hstring(can_tx_out_expected)
-          severity failure;
+          severity failure;          
         --write recieved length and data
         hwrite(out_l,std_logic_vector(to_unsigned(can_tx_out_len,8)));
         write(out_l,String'(" "));
