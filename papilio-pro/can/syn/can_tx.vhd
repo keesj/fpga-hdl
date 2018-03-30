@@ -132,7 +132,6 @@ begin
                 bit_shift_zero_bits  <= "11111";
                 crc_rst <= '1';
             elsif can_signal_set = '1' then
-
                 can_phy_tx_buf <= next_tx_value ;
                 
                 if bit_stuffing_required = '1' then
@@ -162,7 +161,7 @@ begin
                             can_bit_counter <= (others => '0');
                             can_tx_state <= can_state_arbitration;
                         when can_state_arbitration =>
-                            report "AR bites";
+                            report "AR bytes";
                             crc_ce <= '1';
                             if can_bit_counter = 11  then
                                 --prare next state
@@ -200,8 +199,8 @@ begin
                                 -- hack it up. I do not know how to do this currently
                                 -- The main problem is that in normal situation we fill the
                                 -- fifo buffer  but in this case the crc is only kown after sending the
-                                -- last bite. hence in this case we directly get the crc value
-                                -- and put it on the tx_buf. Because of that we also push on bit
+                                -- last byte. hence in this case we directly get the crc value
+                                -- and put it on the tx_buf. Because of that we also push one bit
                                 -- less on the fifo buffer.
                                 --for short we can not do
                                 --shift_buff(127 downto 112) <= crc_data & '0';
@@ -235,6 +234,15 @@ begin
                                 can_phy_tx_en_buf <= '0';
                             end if;
                     end case;
+                end if;
+            elsif can_signal_check = '1' then
+                if can_tx_state = can_state_arbitration then
+                    report "AR CHECK";
+                    --check first 11 bits (not resent stuff)
+                    if can_phy_tx_buf = '1' and can_phy_rx = '0' then
+                        report "LOST ARBITRATION";
+                        --if we lost artibration
+                    end if;
                 end if;
             end if;
         end if;

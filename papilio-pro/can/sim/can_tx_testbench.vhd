@@ -46,12 +46,27 @@ begin
 
    clk_process :process
    begin
-        clk <= '0';
-        can_signal_set <= '0';
-        wait for clk_period/2;  --for 0.5 ns signal is '0'.
-        clk <= '1';
-        can_signal_set <= '1';
-        wait for clk_period/2;  --for next 0.5 ns signal is '1'.
+        for i in 0 to 0 loop
+            if i = 0 then
+              can_signal_set <= '1';
+            end if;
+            if i = 4 then
+                can_signal_check <= '1';
+            end if;
+  
+            clk <= '1';
+            wait for clk_period/2;  --for 0.5 ns signal is '0'.
+            clk <= '0';
+            wait for clk_period/2;  --for next 0.5 ns signal is
+
+            if i = 4 then
+                can_signal_check <= '0';
+            end if;
+
+            if i = 0 then
+                can_signal_set <= '0';
+            end if;
+        end loop;
    end process;
 
    data_out :process(clk)
