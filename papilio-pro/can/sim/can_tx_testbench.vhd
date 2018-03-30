@@ -15,6 +15,7 @@ architecture behavior of can_tx_testbench is
     signal can_valid   :   std_logic := '0';
     signal status      :  std_logic_vector (31 downto 0):= (others => '0');
     signal can_signal_set : std_logic := '0';
+    signal can_signal_check : std_logic := '0';
     signal can_phy_tx     :   std_logic:= '0';
     signal can_phy_tx_en  :   std_logic:= '0';
     signal can_phy_rx     :  std_logic:= '0';
@@ -35,6 +36,7 @@ begin
         can_valid  => can_valid,
         status     => status,
         can_signal_set => can_signal_set,
+        can_signal_check => can_signal_check, -- unused in this test
         can_phy_tx  => can_phy_tx,
         can_phy_tx_en  => can_phy_tx_en,
         can_phy_rx     => can_phy_rx

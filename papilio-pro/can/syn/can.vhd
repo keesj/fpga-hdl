@@ -78,6 +78,7 @@ begin
         can_valid  => can_tx_valid,
         status     => can_tx_status,
         can_signal_set => can_clk_sample_set_clk,
+        can_signal_check => can_clk_sample_check_clk,
         can_phy_tx  => phy_tx,
         can_phy_tx_en  => phy_tx_en,
         can_phy_rx     => phy_rx

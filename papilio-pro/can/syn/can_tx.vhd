@@ -3,16 +3,17 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity can_tx is
-    port (  clk            : in  std_logic;            
-            can_id         : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
-            can_dlc        : in  std_logic_vector (3 downto 0);
-            can_data       : in  std_logic_vector (63 downto 0);
-            can_valid      : in  std_logic;
-            status         : out std_logic_vector (31 downto 0);
-            can_signal_set : in  std_logic; -- signal to set/change a value on the bus
-            can_phy_tx     : out std_logic;
-            can_phy_tx_en  : out std_logic;
-            can_phy_rx     : in  std_logic
+    port (  clk              : in  std_logic;            
+            can_id           : in  std_logic_vector (31 downto 0);-- 32 bit can_id + eff/rtr/err flags 
+            can_dlc          : in  std_logic_vector (3 downto 0);
+            can_data         : in  std_logic_vector (63 downto 0);
+            can_valid        : in  std_logic;
+            status           : out std_logic_vector (31 downto 0);
+            can_signal_set   : in  std_logic; -- signal to set/change a value on the bus
+            can_signal_check : in  std_logic; -- signal to check the value on the bus
+            can_phy_tx       : out std_logic;
+            can_phy_tx_en    : out std_logic;
+            can_phy_rx       : in  std_logic
     );
 end can_tx;
 
