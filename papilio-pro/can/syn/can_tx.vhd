@@ -91,7 +91,8 @@ begin
 
     -- status / next state logic
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
-    status <= (0=>'0' , others =>'0') when can_tx_state = can_state_idle else (0=>'1' , others =>'0');
+    status(0) <= '0' when can_tx_state = can_state_idle else '1';
+    status(31 downto 1) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
     bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and bit_stuffing_en = '1'  else '0';
