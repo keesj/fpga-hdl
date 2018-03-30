@@ -190,7 +190,7 @@ begin
                             if can_bit_counter = 11  then
                                 --prare next state
                                 --shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
-                                report "AR DONE " &  to_hstring(buff_current(11 downto 1));
+                              --  report "AR DONE " &  to_hstring(buff_current(11 downto 1));
                                 can_id_rx_buf <= (others => '0');
                                 can_id_rx_buf(31 downto 21) <= buff_current(11 downto 1);
                                 can_rtr_rx_buf<= buff_current(0);
@@ -204,7 +204,7 @@ begin
                             report "Control bytes";
                             crc_ce <= '1';
                             if can_bit_counter = 5 then
-                                report "DLC " &  to_hstring(buff_current(3 downto 0));
+                                --report "DLC " &  to_hstring(buff_current(3 downto 0));
                                 can_dlc_rx_buf <= buff_current(3 downto 0);
                                 can_bit_counter <=(others => '0');
                                 if buff_current(3 downto 0) = "0000" then

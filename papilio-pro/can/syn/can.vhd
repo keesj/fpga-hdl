@@ -14,7 +14,7 @@ entity can is
         can_tx_id    : in std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
         can_tx_dlc   : in std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
         can_tx_data  : in std_logic_vector (63 downto 0) := (others => '0'); -- data
-        can_tx_valid : out std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
+        can_tx_valid : in std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
 
         --can RX related
         can_rx_id    : out std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
@@ -56,6 +56,7 @@ begin
   can_status(0) <= can_rx_status(0);
   can_status(1) <= can_tx_status(0);
   can_status(2) <= can_rx_status(1); -- crc error
+  can_status(31 downto 3) <= (others => '0');
   
   -- can clock generation 
   can_clk: entity work.can_clk port map(
