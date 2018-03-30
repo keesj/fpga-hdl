@@ -71,7 +71,7 @@ begin
 
   -- Test bench statements
   tb : process
-    file testbench_data : text open READ_MODE is "can_tx_testbench_data.hex";
+    file testbench_data : text open READ_MODE is "test_data/can_tx_testbench_data.hex";
 
     file testbench_out : text open WRITE_MODE is "can_tx_testbench_data_out.hex";
     variable l : line;

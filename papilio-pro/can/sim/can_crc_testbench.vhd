@@ -36,7 +36,7 @@ architecture behavior of can_crc_testbench is
   
 
   tb : process is
-    file testbench_data : text open READ_MODE is "can_crc_testbench_data.hex";
+    file testbench_data : text open READ_MODE is "test_data/can_crc_testbench_data.hex";
     variable l : line;
     variable data_in : std_logic_vector(7 downto 0);
     variable crc_in : std_logic_vector(14 downto 0);
