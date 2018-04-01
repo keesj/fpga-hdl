@@ -34,12 +34,17 @@ begin
                 -- next clock cycle the code gets triggered imediately
                 counter <= 0;
                 quanta_counter <= 0;
+            elsif can_rx_clk_sync = '1' then
+                --reset counters 
+                counter <= to_integer(unsigned(quanta_clk_count));
+                quanta_counter <= 0;
             else
                 can_sample_set_clk_buf <= '0';
                 can_sample_check_clk_buf <= '0';
                 can_sample_get_clk_buf <= '0' ;
 
                 counter <= counter - 1;
+
                 if counter = 0 then
                     counter <= to_integer(unsigned(quanta_clk_count));
                     quanta_counter <= quanta_counter +1;
