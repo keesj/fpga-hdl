@@ -20,6 +20,7 @@ VHDSOURCE +=  syn/can_crc.vhd
 VHDSOURCE +=  syn/can_phy.vhd
 VHDSOURCE +=  syn/can_tx.vhd
 VHDSOURCE +=  syn/can_rx.vhd
+VHDSOURCE +=  syn/can_tx_mux.vhd
 VHDSOURCE +=  syn/can.vhd
 
 #

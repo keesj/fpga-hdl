@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity can_tx_ack_mux is
+entity can_tx_mux is
     port(
         clk     : in std_logic;
         tx      : in std_logic;
@@ -13,9 +13,9 @@ entity can_tx_ack_mux is
         can_ack_req : in std_logic;
         can_signal_set : in std_logic
     );
-end can_tx_ack_mux;
+end can_tx_mux;
 
-architecture rtl of can_tx_ack_mux is
+architecture rtl of can_tx_mux is
     signal do_ack : std_logic := '0';
 begin
     tx_out <= tx when do_ack ='0' else '1';

@@ -62,7 +62,7 @@ begin
   can_status(2) <= can_rx_status(1); -- crc error
   can_status(31 downto 3) <= (others => '0');
   
-  can_tx_ack_mux : entity work.can_tx_ack_mux port map(
+  can_tx_mux : entity work.can_tx_mux port map(
         clk   => clk,
         tx    => can_phy_pre_mux_tx,
         tx_en => can_phy_pre_mux_tx_en,

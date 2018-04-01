@@ -18,7 +18,7 @@ for i in syn/can_phy.vhd \
 	sim/can_tx_testbench.vhd \
 	syn/can_rx.vhd \
 	sim/can_rx_testbench.vhd \
-	syn/can_tx_ack_mux.vhd \
+	syn/can_tx_mux.vhd \
 	syn/can.vhd \
 	sim/can_testbench.vhd 
 do 
