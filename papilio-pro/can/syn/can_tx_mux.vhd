@@ -3,15 +3,15 @@ use ieee.std_logic_1164.all;
 
 entity can_tx_mux is
     port(
-        clk     : in std_logic;
-        tx      : in std_logic;
-        tx_en   : in std_logic;
+        clk            : in  std_logic;
+        tx             : in  std_logic;
+        tx_en          : in  std_logic;
 
-        tx_out  : out std_logic;
-        tx_out_en : out std_logic;
+        tx_out         : out std_logic;
+        tx_out_en      : out std_logic;
 
-        can_ack_req : in std_logic;
-        can_signal_set : in std_logic
+        can_ack_req    : in  std_logic;
+        can_signal_set : in  std_logic
     );
 end can_tx_mux;
 

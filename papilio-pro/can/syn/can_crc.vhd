@@ -10,15 +10,15 @@ entity can_crc is
     port ( 
             clk : in  std_logic;
             din : in  std_logic;
-            ce : in std_logic;
-            rst : in std_logic;
-            crc : out  std_logic_vector(14 downto 0)
+            ce  : in  std_logic;
+            rst : in  std_logic;
+            crc : out std_logic_vector(14 downto 0)
     );
 end can_crc;
 
 architecture rtl of can_crc is
     signal crc_next : std_logic_vector (14 downto 0) := (others => '0');
-    signal crc_val : std_logic_vector (14 downto 0) := (others => '0');
+    signal crc_val  : std_logic_vector (14 downto 0) := (others => '0');
 begin
     crc <= crc_val;
 

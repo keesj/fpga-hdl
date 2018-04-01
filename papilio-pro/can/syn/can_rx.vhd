@@ -3,11 +3,11 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity can_rx is
-    port (  clk                 : in   std_logic;            
-            can_id              : out  std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
-            can_dlc             : out  std_logic_vector (3 downto 0)  := (others => '0');
-            can_data            : out  std_logic_vector (63 downto 0) := (others => '0');
-            can_valid           : out  std_logic := '0';
+    port (  clk                 : in  std_logic;            
+            can_id              : out std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
+            can_dlc             : out std_logic_vector (3 downto 0)  := (others => '0');
+            can_data            : out std_logic_vector (63 downto 0) := (others => '0');
+            can_valid           : out std_logic := '0';
 
             can_drr             : in  std_logic; -- allow to recieve a frame
             status              : out std_logic_vector (31 downto 0);
@@ -17,8 +17,8 @@ entity can_rx is
 
             can_signal_get      : in  std_logic; -- signal to set/change a value on the bus
 
-            can_rx_clk_sync_en     : in std_logic := '1'; -- enable syncing on changing tx input
-            can_rx_clk_sync        : out std_logic := '0'; -- signal to synchronize the clock with values on the bus
+            can_rx_clk_sync_en  : in  std_logic := '1'; -- enable syncing on changing tx input
+            can_rx_clk_sync     : out std_logic := '0'; -- signal to synchronize the clock with values on the bus
 
             --We use to have the tx line here but timing of this module (the time of sampling)
             --Does not match the timing to send bits so instead we redirect this responsability
