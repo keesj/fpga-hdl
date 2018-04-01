@@ -38,6 +38,10 @@ end can;
 
 architecture behavior of can is
 
+  -- tx signal for muxing
+  signal can_phy_pre_mux_tx : std_logic := '0';
+  signal can_phy_pre_mux_tx_en : std_logic := '0';
+
   -- Signals
   signal can_rx_clk_sync: std_logic := '0';            -- Start of frame detected
   signal can_rx_clk_sync_en : std_logic := '1';            -- Start of frame detected
@@ -58,6 +62,18 @@ begin
   can_status(2) <= can_rx_status(1); -- crc error
   can_status(31 downto 3) <= (others => '0');
   
+  can_tx_ack_mux : entity work.can_tx_ack_mux port map(
+        clk   => clk,
+        tx    => can_phy_pre_mux_tx,
+        tx_en => can_phy_pre_mux_tx_en,
+
+        tx_out    => phy_tx,
+        tx_out_en => phy_tx_en,
+
+        can_ack_req => can_phy_ack_req,
+        can_signal_set => can_clk_sample_set_clk
+  );
+
   -- can clock generation 
   can_clk: entity work.can_clk port map(
     clk => clk ,
@@ -79,8 +95,8 @@ begin
         status     => can_tx_status,
         can_signal_set => can_clk_sample_set_clk,
         can_signal_check => can_clk_sample_check_clk,
-        can_phy_tx  => phy_tx,
-        can_phy_tx_en  => phy_tx_en,
+        can_phy_tx  => can_phy_pre_mux_tx,
+        can_phy_tx_en  => can_phy_pre_mux_tx_en,
         can_phy_rx     => phy_rx
     );
     
