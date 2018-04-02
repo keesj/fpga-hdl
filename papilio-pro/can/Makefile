@@ -1,6 +1,5 @@
 #The name of the project, used as a name for certain intermediate files, and as the default name for the top-level module and constraints file.
-PROJECT=can
-
+PROJECT=can_send
 # The full part-speed-package identifier for the Xilinx part to be targeted, e.g. xc6slx9-2-tqg144.
 # Can be seen from thee ide in the design summary: as taret device
 TARGET_PART=xc6slx9-3tqg144
@@ -22,6 +21,7 @@ VHDSOURCE +=  syn/can_tx.vhd
 VHDSOURCE +=  syn/can_rx.vhd
 VHDSOURCE +=  syn/can_tx_mux.vhd
 VHDSOURCE +=  syn/can.vhd
+VHDSOURCE +=  examples/can_send.vhd
 
 #
 #The name of the constraints file (.ucf) to be used for the project. (Defaults to $PROJECT.ucf.)
