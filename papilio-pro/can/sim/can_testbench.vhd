@@ -111,8 +111,8 @@ begin
         can1_rst <= '0';
 
         --set sample rate
-        can0_can_sample_rate <=  std_logic_vector(to_unsigned(0,32));
-        can1_can_sample_rate <=  std_logic_vector(to_unsigned(0,32));
+        can0_can_sample_rate <=  std_logic_vector(to_unsigned(1,32));
+        can1_can_sample_rate <=  std_logic_vector(to_unsigned(1,32));
 
         wait until rising_edge(clk);
         wait until falling_edge(clk);

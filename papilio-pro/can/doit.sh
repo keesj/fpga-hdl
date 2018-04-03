@@ -33,7 +33,7 @@ done
 cp -r ../sim/test_data .
 ghdl -r --ieee=synopsys --std=08 can_tx_testbench --vcd=can_tx_testbench.vcd --stop-time=30us
 ghdl -r --ieee=synopsys --std=08 can_rx_testbench --vcd=can_rx_testbench.vcd --stop-time=30us 
-ghdl -r --ieee=synopsys --std=08 can_testbench --vcd=can_testbench.vcd --stop-time=100us
+ghdl -r --ieee=synopsys --std=08 can_testbench --vcd=can_testbench.vcd --stop-time=30us
 ghdl -r --ieee=synopsys --std=08 can_send_testbench --vcd=can_send_testbench.vcd --stop-time=100us
 #../tools/to_raw.py
 #sigrok-cli --input-format binary:samplerate=2 --input-file out --output-file out.sr

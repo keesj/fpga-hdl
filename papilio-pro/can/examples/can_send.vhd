@@ -73,7 +73,7 @@ begin
             else 
                 case can_send_state is
                     when can_send_state_initial =>
-                        can0_can_sample_rate <= std_logic_vector(to_unsigned(1000,32));
+                        can0_can_sample_rate <= std_logic_vector(to_unsigned(1,32));
                         can_send_state <= can_send_state_wait_for_ready;
                     when can_send_state_wait_for_ready =>
                         if can0_can_status(2 downto 0) = "000" then
