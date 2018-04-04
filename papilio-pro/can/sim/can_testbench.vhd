@@ -6,6 +6,7 @@ entity can_testbench is
 end can_testbench;
 
 architecture behavior of can_testbench is
+    signal test_running :  std_logic := '1';
     signal clk :  std_logic;
     signal can0_can_sample_rate :  std_logic_vector (31 downto 0) := (others => '0'); --
     signal can0_rst :  std_logic;
@@ -97,6 +98,9 @@ begin
         wait for clk_period/2;
         clk <= '1';
         wait for clk_period/2;
+        if test_running = '0' then
+          wait;
+        end if;
     end process;
 
     can0_test : process
@@ -138,10 +142,14 @@ begin
             wait until falling_edge(clk);
             can0_can_tx_valid <= '0';
 
-            wait until can1_can_status(1) ='0';
+            wait until can1_can_status(0) ='0';
             assert can1_can_status(2) = '0' report "CAN RX CRC ERROR" severity failure;
+
         end loop;
         
+	
+        report "DONE";
+        test_running <= '0';
         wait;
         --set sample rate
 

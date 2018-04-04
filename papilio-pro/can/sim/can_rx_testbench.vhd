@@ -8,6 +8,7 @@ entity can_rx_testbench is
 end can_rx_testbench;
 
 architecture behavior of can_rx_testbench is
+    signal test_running:   std_logic := '1';            
     signal clk         :   std_logic := '0';            
     signal can_id      :   std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
     signal can_dlc     :   std_logic_vector (3 downto 0) := (others => '0');
@@ -62,6 +63,9 @@ begin
         clk <= '1';
         can_signal_set <= '1';
         wait for clk_period/2;  --for next 0.5 ns signal is '1'.
+        if test_running = '0' then
+          wait;
+	end if;
    end process;
 
    data_out :process(clk)
@@ -136,6 +140,7 @@ begin
           report "Unexpexted DATA "  & to_hstring(can_in_data_expected) & " " & to_hstring(can_data) severity failure ;
     end loop;
     report "DONE";
+    test_running <= '0';
     wait; -- will wait forever
   end process tb; 
 end;

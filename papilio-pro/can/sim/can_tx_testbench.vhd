@@ -8,6 +8,7 @@ entity can_tx_testbench is
 end can_tx_testbench;
 
 architecture behavior of can_tx_testbench is
+    signal test_running:   std_logic := '1';
     signal clk         :   std_logic := '0';            
     signal can_id      :   std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
     signal can_dlc     :   std_logic_vector (3 downto 0) := (others => '0');
@@ -48,6 +49,9 @@ begin
 
    clk_process :process
    begin
+	if test_running ='0' then
+		wait;
+	end if;
         for i in 0 to 9 loop
             if i = 0 then
               can_signal_set <= '1';
@@ -149,6 +153,7 @@ begin
         hwrite(out_l,can_tx_out);
         writeline(testbench_out,out_l);        
     end loop;
+    test_running <= '0';
 
     wait; -- will wait forever
   end process tb; 
