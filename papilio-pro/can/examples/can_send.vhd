@@ -65,9 +65,7 @@ begin
     sending_stuff : process(clk)
     begin
         if rising_edge(clk) then
-
             can0_can_tx_valid <= '0';
-
             if rst = '1' then
                 can_send_state <= can_send_state_initial;
             else 
