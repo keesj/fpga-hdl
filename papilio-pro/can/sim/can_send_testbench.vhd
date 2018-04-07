@@ -45,6 +45,7 @@ architecture behavior of can_send_testbench is
     wait until falling_edge(clk);
     wait until rising_edge(clk);
     rst <= '0';
+
     wait;
     --wait; -- will wait forever
   end process tb;
