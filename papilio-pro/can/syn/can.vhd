@@ -7,7 +7,7 @@ entity can is
         clk : in std_logic;
         rst : in std_logic;
         
-
+        can_config : in std_logic_vector(31 downto 0)  := (others => '0'); -- controller conig lsb = loopback enable
         can_sample_rate : in std_logic_vector(31 downto 0) := (0=>'1' , others => '0');
         
         --can TX related
@@ -38,6 +38,8 @@ end can;
 
 architecture behavior of can is
 
+  signal phy_rx_post_mux : std_logic := '0';
+
   -- tx signal for muxing
   signal can_phy_pre_mux_tx : std_logic := '0';
   signal can_phy_pre_mux_tx_en : std_logic := '0';
@@ -55,7 +57,9 @@ architecture behavior of can is
   signal can_rx_status : std_logic_vector (31 downto 0):= (others => '0'); --recieve status
 begin
 
-  
+  -- implement loop back if requesed
+  phy_rx_post_mux <= phy_rx when can_config(0) ='0' else can_phy_pre_mux_tx;
+
   --make can_status 0 the rx busy  and can_status 1 the tx_busy
   can_status(0) <= can_rx_status(0);
   can_status(1) <= can_tx_status(0);

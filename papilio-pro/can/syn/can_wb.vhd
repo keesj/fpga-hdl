@@ -13,7 +13,7 @@ entity can_wb is
         );
 end can_wb;
 
-architecture BEHAVIORAL of can_wb is
+architecture behavior of can_wb is
 
   -- exelent documentation here
   -- http://zipcpu.com/zipcpu/2017/05/29/simple-wishbone.html
@@ -29,8 +29,6 @@ architecture BEHAVIORAL of can_wb is
   signal  wb_dat_o:    std_logic_vector(31 downto 0); -- Wishbone data output (32 bits)
   signal  wb_ack_o:    std_logic;                     -- Wishbone acknowledge out signal
   signal  wb_inta_o:   std_logic;
-
-  signal allzero                    : std_logic_vector( 31 downto 0)  := (others => '0');
 
   signal version                    : std_logic_vector( 31 downto 0)  := x"13371337";
   signal config_settings            : std_logic_vector( 31 downto 0)  := (others => '0');
@@ -163,12 +161,12 @@ begin
       when x"04" => wb_dat_o <= can0_can_rx_id_filter;
       when x"05" => wb_dat_o <= can0_can_rx_id_filter_mask;
       when x"06" => wb_dat_o <= can0_can_tx_id;                -- not very usefull
-      when x"07" => wb_dat_o(3 downto 0) <= can0_can_tx_dlc;               -- not very usefull
+      when x"07" => wb_dat_o <= 28x"0" & can0_can_tx_dlc;               -- not very usefull
       when x"08" => wb_dat_o <= can0_can_tx_data(31 downto 0); -- not very usefull
       when x"09" => wb_dat_o <= can0_can_tx_data(63 downto 32);-- not very usefull
-      when x"0a" => wb_dat_o <= (0=>can0_can_tx_valid , others => '0');             -- not very usefull
+      when x"0a" => wb_dat_o <= 31x"0" & can0_can_tx_valid;             -- not very usefull
       when x"0b" => wb_dat_o <= can0_can_rx_id;
-      when x"0c" => wb_dat_o <= allzero(31 downto 4) & can0_can_rx_dlc;
+      when x"0c" => wb_dat_o <= 28x"0" & can0_can_rx_dlc;
       when x"0d" => wb_dat_o <= can0_can_rx_data(31 downto 0);
       when x"0e" => wb_dat_o <= can0_can_rx_data(63 downto 32);
       when x"0f" => -- ksip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
@@ -204,4 +202,4 @@ begin
       end if;
     end if;
   end process;
-end BEHAVIORAL;
+end behavior;
