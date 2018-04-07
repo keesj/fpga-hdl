@@ -27,7 +27,7 @@ architecture BEHAVIORAL of can_wb is
   signal  wb_stb_i:    std_logic;                     -- Wishbone strobe signal  
     
   signal  wb_dat_o:    std_logic_vector(31 downto 0); -- Wishbone data output (32 bits)
-  signal  wb_ack_o:    std_logic;                      -- Wishbone acknowledge out signal
+  signal  wb_ack_o:    std_logic;                     -- Wishbone acknowledge out signal
   signal  wb_inta_o:   std_logic;
 
   signal allzero                    : std_logic_vector( 31 downto 0)  := (others => '0');
@@ -35,7 +35,6 @@ architecture BEHAVIORAL of can_wb is
   signal version                    : std_logic_vector( 31 downto 0)  := x"13371337";
   signal config_settings            : std_logic_vector( 31 downto 0)  := (others => '0');
 
-  signal can0_clk                   : std_logic;
   signal can0_can_sample_rate       : std_logic_vector (31 downto 0) := (others => '0'); --
   signal can0_rst                   : std_logic;
   signal can0_can_tx_id             : std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
@@ -94,20 +93,17 @@ begin
   wb_rst_i <= wishbone_in(60);           -- reset signal
   wb_dat_i <= wishbone_in(59 downto 28); -- the date the master wishes to write
   wb_adr_i <= wishbone_in(27 downto 3);  -- contains the address of the request
-  wb_we_i <= wishbone_in(2);             -- true for any write requests
+  wb_we_i  <= wishbone_in(2);             -- true for any write requests
   wb_cyc_i <= wishbone_in(1);            -- is true any time a wishbone transaction is taking place
   wb_stb_i <= wishbone_in(0);            -- is true for any bus transaction request.
 
   wishbone_out(33 downto 2) <= wb_dat_o;
-  wishbone_out(1) <= wb_ack_o;
-  wishbone_out(0) <= wb_inta_o;
+  wishbone_out(1)           <= wb_ack_o;
+  wishbone_out(0)           <= wb_inta_o;
   -- End unpacking Wishbone signals
 
---Put your code here
---leds <= register0_out(3 downto 0);
---register1_in(3 downto 0) <= buttons;
-can0: can port MAP(
-        clk => can0_clk,
+  can0: can port MAP(
+        clk => wb_clk_i,
         rst => can0_rst,
         can_sample_rate=> can0_can_sample_rate,
         can_tx_id  => can0_can_tx_id,
@@ -128,30 +124,29 @@ can0: can port MAP(
 );
 
   --map registers
-  -- 00 version h"13371337'
-  -- 01 status bit 0 denotes a transmit request. bit 1 a read to receive singal
-  -- 02 RESERVED CONF SETTINGS (loopback,selftest )
+  -- 00 RO version h"13371337'
+  -- 01 RO status bit 0 denotes a transmit request. bit 1 a read to receive singal
+  -- 02 RW RESERVED CONF SETTINGS (loopback,selftest )
 
-  -- 03 CONF sample rate
-  -- 04 CONF RX id filter
-  -- 05 CONF RX id filter mask
+  -- 03 RW CONF sample rate
+  -- 04 RW CONF RX id filter
+  -- 05 RW CONF RX id filter mask
 
-  -- 06 TX tx_id (11 msb are id) and lsb is request response
-  -- 07 TX the 4 lsb bytes are the data length (code)
-  -- 08 TX bits 31 to 0 of the data 
-  -- 09 TX bits 63 to 32 of the data 
-  -- 0A TX_VALID
+  -- 06 RW TX tx_id (11 msb are id) and lsb is request response
+  -- 07 RW TX the 4 lsb bytes are the data length (code)
+  -- 08 RW TX bits 31 to 0 of the data 
+  -- 09 RW bits 63 to 32 of the data 
+  -- 0A WO TX_VALID
 
-  -- 0B RX tx _id (11 msb are id) and lsb is request response
-  -- 0C RX LCD the 4 lsb bytes are the data length (code)
-  -- 0d RX RX_DAT0 
-  -- 0e RX RX_DAT1
-  -- 0f RX valid
+  -- 0B RO RX tx _id (11 msb are id) and lsb is request response
+  -- 0C RO RX LCD the 4 lsb bytes are the data length (code)
+  -- 0d RO RX RX_DAT0 
+  -- 0e RO RX RX_DAT1
+  -- 0f WO TX_DATA_READ_READY (the data has been read)
 
   --register8_in <= can0_can_status;       -- get status (rx/tx)
   --register9_in <= x"deadbeef";       -- get status (rx/tx)
 
-  can0_clk <= wishbone_in(61);
   can0_rst <= wishbone_in(60);
 
   --wb 
@@ -162,7 +157,7 @@ can0: can port MAP(
   begin
     case wb_adr_i(9 downto 2) is
       when x"00" => wb_dat_o <= version;
-      when x"01" => wb_dat_o <= can0_can_status ;
+      when x"01" => -- skip wb_dat_o <= can0_can_status ;
       when x"02" => wb_dat_o <= config_settings;
       when x"03" => wb_dat_o <= can0_can_sample_rate;
       when x"04" => wb_dat_o <= can0_can_rx_id_filter;
@@ -176,7 +171,7 @@ can0: can port MAP(
       when x"0c" => wb_dat_o <= allzero(31 downto 4) & can0_can_rx_dlc;
       when x"0d" => wb_dat_o <= can0_can_rx_data(31 downto 0);
       when x"0e" => wb_dat_o <= can0_can_rx_data(63 downto 32);
-      when x"0f" => wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
+      when x"0f" => -- ksip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
       when others => wb_dat_o <= (others => 'X'); -- Return undefined for all other addresses
     end case;
   end process;
@@ -203,7 +198,7 @@ can0: can port MAP(
           when x"0c" =>  -- skip can0_can_rx_dlc <=  wb_dat_i;
           when x"0d" =>  -- skip  can0_can_rx_data(31 downto 0) <=  wb_dat_i;
           when x"0e" =>  -- skip can0_can_rx_data(63 downto 32) <=  wb_dat_i;
-          when x"0f" => -- skip can0_can_rx_drr
+          when x"0f" => can0_can_rx_drr <=  wb_dat_i(0);
           when others => 
         end case;
       end if;
