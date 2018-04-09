@@ -21,6 +21,7 @@ for i in syn/can_phy.vhd \
 	syn/can_tx_mux.vhd \
 	syn/can.vhd \
 	sim/can_testbench.vhd \
+	sim/can_two_devices_testbench.vhd \
 	examples/can_send.vhd \
 	sim/can_send_testbench.vhd \
 	syn/can_wb.vhd
@@ -34,6 +35,7 @@ done
 cp -r ../sim/test_data .
 ghdl -r --ieee=synopsys --std=08 can_tx_testbench --vcd=can_tx_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_rx_testbench --vcd=can_rx_testbench.vcd 
+ghdl -r --ieee=synopsys --std=08 can_two_devices_testbench --vcd=can_two_devices_testbench.vcd 
 ghdl -r --ieee=synopsys --std=08 can_testbench --vcd=can_testbench.vcd 
 #ghdl -r --ieee=synopsys --std=08 can_send_testbench --vcd=can_send_testbench.vcd --stop-time=100us
 #../tools/to_raw.py

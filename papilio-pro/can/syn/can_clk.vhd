@@ -37,8 +37,10 @@ begin
                 quanta_counter <= 0;
             elsif can_rx_clk_sync = '1' then
                 --reset counters 
-                counter <= to_integer(unsigned(quanta_clk_count));
-                quanta_counter <= 0;
+                if quanta_counter > 2 and quanta_counter < 8 then
+                    counter <= to_integer(unsigned(quanta_clk_count));
+                    quanta_counter <= 0;
+                end if;
             else
                 can_sample_set_clk_buf <= '0';
                 can_sample_check_clk_buf <= '0';
@@ -52,16 +54,14 @@ begin
                     if quanta_counter = 9 then
                       quanta_counter <= 0;
                     end if;
-                    if 
-                        quanta_counter = 0 
-                    then
+                    if  quanta_counter = 0 then
                         can_sample_set_clk_buf <= '1';
-                    else
+                    end if;
+                    if  quanta_counter = 7 then
                         can_sample_check_clk_buf <= '1';
-                        if  quanta_counter = 7 
-                        then
+                    end if;
+                    if  quanta_counter = 7 then
                           can_sample_get_clk_buf <= '1';
-                        end if;
                     end if;
                 end if;
             end if; 

@@ -38,7 +38,7 @@ end can;
 
 architecture behavior of can is
 
-  signal phy_rx_post_mux : std_logic := '0';
+  signal phy_rx_post_loopback_mux : std_logic := '0';
 
   -- tx signal for muxing
   signal can_phy_pre_mux_tx : std_logic := '0';
@@ -55,10 +55,12 @@ architecture behavior of can is
 
   signal can_tx_status : std_logic_vector (31 downto 0):= (others => '0'); --transmit status
   signal can_rx_status : std_logic_vector (31 downto 0):= (others => '0'); --recieve status
+
+  alias can_config_loopback is can_config(0);
 begin
 
   -- implement loop back if requesed
-  phy_rx_post_mux <= phy_rx when can_config(0) ='0' else can_phy_pre_mux_tx;
+  phy_rx_post_loopback_mux <= can_phy_pre_mux_tx  when can_config_loopback ='1' else phy_rx;
 
   --make can_status 0 the rx busy  and can_status 1 the tx_busy
   can_status(0) <= can_rx_status(0);
@@ -119,6 +121,6 @@ begin
     can_rx_clk_sync_en   => can_rx_clk_sync_en, --sync signal from the recieve module to the clock module
     can_rx_clk_sync   => can_rx_clk_sync, --sync signal from the recieve module to the clock module
     can_phy_ack_req => can_phy_ack_req,
-    can_phy_rx   => phy_rx
+    can_phy_rx   => phy_rx_post_loopback_mux
   );
 end;
