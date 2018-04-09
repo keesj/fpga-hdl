@@ -120,8 +120,8 @@ begin
         can1_rst <= '0';
 
         --set sample rate
-        can0_can_sample_rate <=  std_logic_vector(to_unsigned(100,32));
-        can1_can_sample_rate <=  std_logic_vector(to_unsigned(100,32));
+        can0_can_sample_rate <=  std_logic_vector(to_unsigned(3,32));
+        can1_can_sample_rate <=  std_logic_vector(to_unsigned(3,32));
 
         wait until rising_edge(clk);
         wait until falling_edge(clk);
@@ -150,10 +150,8 @@ begin
             wait until can1_can_status(0) ='0';
             assert can1_can_rx_id = can0_can_tx_id report "CAN ID ERROR" severity failure;
             assert can1_can_status(2) = '0' report "CAN RX CRC ERROR" severity failure;
-
         end loop;
         
-	
         report "DONE";
         test_running <= '0';
         wait;
