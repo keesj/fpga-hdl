@@ -124,7 +124,7 @@ begin
   --map registers
   -- 00 RO version h"13371337'
   -- 01 RO status bit 0 denotes a transmit request. bit 1 a read to receive singal
-  -- 02 RW RESERVED CONF SETTINGS (loopback,selftest )
+  -- 02 RW CONF  (loopback,selftest )
 
   -- 03 RW CONF sample rate
   -- 04 RW CONF RX id filter
@@ -155,7 +155,7 @@ begin
   begin
     case wb_adr_i(9 downto 2) is
       when x"00" => wb_dat_o <= version;
-      when x"01" => -- skip wb_dat_o <= can0_can_status ;
+      when x"01" => wb_dat_o <= can0_can_status ;
       when x"02" => wb_dat_o <= config_settings;
       when x"03" => wb_dat_o <= can0_can_sample_rate;
       when x"04" => wb_dat_o <= can0_can_rx_id_filter;
@@ -182,7 +182,7 @@ begin
         case wb_adr_i(9 downto 2) is
           -- configuration fields
           when x"00" =>  --ignore version
-          when x"01" => can0_can_status <=  wb_dat_i;
+          when x"01" => -- ignore can0_can_status <=  wb_dat_i;
           when x"02" => config_settings <=  wb_dat_i;
           when x"03" => can0_can_sample_rate <=  wb_dat_i;
           when x"04" => can0_can_rx_id_filter <=  wb_dat_i;
