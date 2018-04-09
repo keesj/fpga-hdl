@@ -86,7 +86,7 @@ begin
 
     -- buffers for phy tx and tx_en to be able to read their state
     can_phy_tx_en <= can_phy_tx_en_buf;
-    can_phy_tx <= can_phy_tx_buf when can_phy_tx_en_buf else '1';
+    can_phy_tx <= can_phy_tx_buf when can_phy_tx_en_buf ='1' else '1';
 
 
     -- status / next state logic

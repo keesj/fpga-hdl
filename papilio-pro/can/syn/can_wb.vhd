@@ -15,7 +15,7 @@ end can_wb;
 
 architecture behavior of can_wb is
 
-  -- exelent documentation here
+  -- excelent documentation here
   -- http://zipcpu.com/zipcpu/2017/05/29/simple-wishbone.html
   --WB
   signal  wb_clk_i:    std_logic;                     -- Wishbone clock
@@ -161,12 +161,12 @@ begin
       when x"04" => wb_dat_o <= can0_can_rx_id_filter;
       when x"05" => wb_dat_o <= can0_can_rx_id_filter_mask;
       when x"06" => wb_dat_o <= can0_can_tx_id;                -- not very usefull
-      when x"07" => wb_dat_o <= 28x"0" & can0_can_tx_dlc;               -- not very usefull
+      when x"07" => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;               -- not very usefull
       when x"08" => wb_dat_o <= can0_can_tx_data(31 downto 0); -- not very usefull
       when x"09" => wb_dat_o <= can0_can_tx_data(63 downto 32);-- not very usefull
-      when x"0a" => wb_dat_o <= 31x"0" & can0_can_tx_valid;             -- not very usefull
+      when x"0a" => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;             -- not very usefull
       when x"0b" => wb_dat_o <= can0_can_rx_id;
-      when x"0c" => wb_dat_o <= 28x"0" & can0_can_rx_dlc;
+      when x"0c" => wb_dat_o <= (31 downto 4 => '0') & can0_can_rx_dlc;
       when x"0d" => wb_dat_o <= can0_can_rx_data(31 downto 0);
       when x"0e" => wb_dat_o <= can0_can_rx_data(63 downto 32);
       when x"0f" => -- ksip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
@@ -188,7 +188,7 @@ begin
           when x"04" => can0_can_rx_id_filter <=  wb_dat_i;
           when x"05" => can0_can_rx_id_filter_mask <=  wb_dat_i;
           when x"06" => can0_can_tx_id <=  wb_dat_i;
-          when x"07" => can0_can_tx_dlc <=  wb_dat_i;
+          when x"07" => can0_can_tx_dlc <=  wb_dat_i(3 downto 0);
           when x"08" => can0_can_tx_data(31 downto 0) <=  wb_dat_i;
           when x"09" => can0_can_tx_data(63 downto 32) <=  wb_dat_i;
           when x"0a" => can0_can_tx_valid <= wb_dat_i(0);
