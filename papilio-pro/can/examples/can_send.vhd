@@ -39,6 +39,9 @@ architecture behavior of can_send is
 
     signal can_send_state: can_send_states := can_send_state_initial;
 begin
+    can0_can_rx_id_filter <= (others => '0');
+    can0_can_rx_id_filter_mask <= (others => '0');
+    can0_can_rx_drr <= '0';
 
     uut0: entity work.can port map(
         clk => clk,

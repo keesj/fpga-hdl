@@ -197,8 +197,14 @@ begin
                                 can_bit_counter <=(others => '0');
                                 --filter here if needed
                                 -- if can_id ^ can_filter_mask  = can_filter_id goto controle else goto sleep
-
-                                can_rx_state <= can_state_control;
+                               can_rx_state <= can_state_control;
+--                               if  buff_current(11 downto 1) or can_id_filter_mask_buf(31 downto 21) =  can_id_filter_buf(31 downto 21) then
+--                                    can_rx_state <= can_state_control;
+--                                else
+--                                    report "RX FILTER DOES NOT MATCH";
+--                                    can_rx_state <= can_state_idle;
+--                                    crc_error <= '0';
+--                                end if;
                             end if;
                         when can_state_control =>
                             report "Control bytes";
