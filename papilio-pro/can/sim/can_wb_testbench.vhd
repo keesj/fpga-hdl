@@ -130,17 +130,28 @@ begin
 
         wait until rising_edge(clk);
         wait until falling_edge(clk);
-        
+
+        wb_cyc_i <= '0';
+
+        assert wb_dat_o = x"00000001" report "Config test expected empty but got " & to_hstring(wb_dat_o) severity failure;
+
+        -- try to get the version
+        wb_adr_i(7 downto 0) <= x"00";
+        wb_cyc_i <= '1';
+        wb_stb_i <= '1';
+        wb_we_i  <= '0';
+
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         wb_cyc_i <= '0';
-
-
-        assert wb_dat_o = x"00000001" report "Config test expected empty but got " & to_hstring(wb_dat_o) severity failure;
-        report "DONE";
-
+        --can0_version
+        
+        assert wb_dat_o = x"13371337" report "DATA unexpected version " & to_hstring(wb_dat_o) severity failure;
 
         test_running <= '0';
+        report "DONE";
         wait;
         --set sample rate
 
