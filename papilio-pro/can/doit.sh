@@ -24,7 +24,8 @@ for i in syn/can_phy.vhd \
 	sim/can_two_devices_testbench.vhd \
 	examples/can_send.vhd \
 	sim/can_send_testbench.vhd \
-	syn/can_wb.vhd
+	syn/can_wb.vhd \
+	sim/can_wb_testbench.vhd
 do 
 	ghdl -a --ieee=synopsys --std=08 ../$i
 done
