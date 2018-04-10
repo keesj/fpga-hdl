@@ -21,7 +21,7 @@ architecture behavior of can_wb is
   signal  wb_clk_i:    std_logic;                     -- Wishbone clock
   signal  wb_rst_i:    std_logic;                     -- Wishbone reset (synchronous)
   signal  wb_dat_i:    std_logic_vector(31 downto 0); -- Wishbone data input  (32 bits)
-  signal  wb_adr_i:    std_logic_vector(26 downto 2); -- Wishbone address input  (32 bits)
+  signal  wb_adr_i:    std_logic_vector(24 downto 0); -- Wishbone address input  (32 bits)
   signal  wb_we_i:     std_logic;                     -- Wishbone write enable signal
   signal  wb_cyc_i:    std_logic;                     -- Wishbone cycle signal
   signal  wb_stb_i:    std_logic;                     -- Wishbone strobe signal  
@@ -31,7 +31,7 @@ architecture behavior of can_wb is
   signal  wb_inta_o:   std_logic;
 
   signal version                    : std_logic_vector( 31 downto 0)  := x"13371337";
-  signal config_settings            : std_logic_vector( 31 downto 0)  := (others => '0');
+  signal can0_config                : std_logic_vector( 31 downto 0)  := (others => '0');
 
   signal can0_can_sample_rate       : std_logic_vector (31 downto 0) := (others => '0'); --
   signal can0_rst                   : std_logic;
@@ -50,40 +50,7 @@ architecture behavior of can_wb is
   signal can0_phy_tx                : std_logic;
   signal can0_phy_tx_en             : std_logic;
   signal can0_phy_rx                : std_logic;
- 
-  COMPONENT can
-    port (
-        -- Standard signals
-        clk : in std_logic;
-        rst : in std_logic;
-        
-        can_sample_rate : in std_logic_vector(31 downto 0) := (0=>'1' , others => '0');
-        
-        --can TX related
-        can_tx_id    : in std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
-        can_tx_dlc   : in std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
-        can_tx_data  : in std_logic_vector (63 downto 0) := (others => '0'); -- data
-        can_tx_valid : in std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
 
-        --can RX related
-        can_rx_id    : out std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
-        can_rx_dlc   : out std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
-        can_rx_data  : out std_logic_vector (63 downto 0) := (others => '0'); -- data
-        can_rx_valid : out std_logic := '0';    --Sync that the data is valid
-        can_rx_drr   : in std_logic := '0';     --rx data read ready (the fields can be invaludated and a new frame can be accepter)
-
-        can_status   : out std_logic_vector (31 downto 0) := (others => '0');
-
-        -- can_rx_filter
-        can_rx_id_filter       : in  std_logic_vector (31 downto 0) := (others => '0');
-        can_rx_id_filter_mask  : in  std_logic_vector (31 downto 0) := (others => '0');
-
-        -- phy signals
-        phy_tx    : out std_logic;
-        phy_tx_en : out std_logic;
-        phy_rx    : in std_logic
-    );
-  END COMPONENT;
 begin
 
   -- Unpack the wishbone array into signals so the modules code is not confusing. - Don't touch.
@@ -100,9 +67,10 @@ begin
   wishbone_out(0)           <= wb_inta_o;
   -- End unpacking Wishbone signals
 
-  can0: can port MAP(
+  can0: entity  work.can port MAP(
         clk => wb_clk_i,
         rst => can0_rst,
+        can_config => can0_config,
         can_sample_rate=> can0_can_sample_rate,
         can_tx_id  => can0_can_tx_id,
         can_tx_dlc => can0_can_tx_dlc,
@@ -151,27 +119,29 @@ begin
   wb_ack_o <= '1' when wb_cyc_i='1' and wb_stb_i='1' else '0';
 
   -- wishbone read requests
-  process(can0_can_status, wb_adr_i)
+  process(wb_clk_i)
   begin
-    case wb_adr_i(9 downto 2) is
-      when x"00" => wb_dat_o <= version;
-      when x"01" => wb_dat_o <= can0_can_status ;
-      when x"02" => wb_dat_o <= config_settings;
-      when x"03" => wb_dat_o <= can0_can_sample_rate;
-      when x"04" => wb_dat_o <= can0_can_rx_id_filter;
-      when x"05" => wb_dat_o <= can0_can_rx_id_filter_mask;
-      when x"06" => wb_dat_o <= can0_can_tx_id;                -- not very usefull
-      when x"07" => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;               -- not very usefull
-      when x"08" => wb_dat_o <= can0_can_tx_data(31 downto 0); -- not very usefull
-      when x"09" => wb_dat_o <= can0_can_tx_data(63 downto 32);-- not very usefull
-      when x"0a" => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;             -- not very usefull
-      when x"0b" => wb_dat_o <= can0_can_rx_id;
-      when x"0c" => wb_dat_o <= (31 downto 4 => '0') & can0_can_rx_dlc;
-      when x"0d" => wb_dat_o <= can0_can_rx_data(31 downto 0);
-      when x"0e" => wb_dat_o <= can0_can_rx_data(63 downto 32);
-      when x"0f" => -- ksip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
-      when others => wb_dat_o <= (others => 'X'); -- Return undefined for all other addresses
-    end case;
+    if rising_edge(wb_clk_i) then  -- Synchronous to the rising edge of the clock
+      case wb_adr_i(7 downto 0) is
+        when x"00" => wb_dat_o <= version;
+        when x"01" => wb_dat_o <= can0_can_status ;
+        when x"02" => wb_dat_o <= can0_config;
+        when x"03" => wb_dat_o <= can0_can_sample_rate;
+        when x"04" => wb_dat_o <= can0_can_rx_id_filter;
+        when x"05" => wb_dat_o <= can0_can_rx_id_filter_mask;
+        when x"06" => wb_dat_o <= can0_can_tx_id;                -- not very usefull
+        when x"07" => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;               -- not very usefull
+        when x"08" => wb_dat_o <= can0_can_tx_data(31 downto 0); -- not very usefull
+        when x"09" => wb_dat_o <= can0_can_tx_data(63 downto 32);-- not very usefull
+        when x"0a" => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;             -- not very usefull
+        when x"0b" => wb_dat_o <= can0_can_rx_id;
+        when x"0c" => wb_dat_o <= (31 downto 4 => '0') & can0_can_rx_dlc;
+        when x"0d" => wb_dat_o <= can0_can_rx_data(31 downto 0);
+        when x"0e" => wb_dat_o <= can0_can_rx_data(63 downto 32);
+        when x"0f" => -- ksip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
+        when others => wb_dat_o <= (others => 'X'); -- Return undefined for all other addresses
+      end case;
+    end if;
   end process;
 
   -- wishbone write requests
@@ -179,11 +149,11 @@ begin
   begin
     if rising_edge(wb_clk_i) then  -- Synchronous to the rising edge of the clock
       if wb_cyc_i='1' and wb_stb_i='1' and wb_we_i='1' then
-        case wb_adr_i(9 downto 2) is
+        case wb_adr_i(7 downto 0) is
           -- configuration fields
           when x"00" =>  --ignore version
           when x"01" => -- ignore can0_can_status <=  wb_dat_i;
-          when x"02" => config_settings <=  wb_dat_i;
+          when x"02" => can0_config <=  wb_dat_i;
           when x"03" => can0_can_sample_rate <=  wb_dat_i;
           when x"04" => can0_can_rx_id_filter <=  wb_dat_i;
           when x"05" => can0_can_rx_id_filter_mask <=  wb_dat_i;
