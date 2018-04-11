@@ -51,7 +51,7 @@ architecture behavior of can_wb is
   signal can0_phy_tx_en             : std_logic;
   signal can0_phy_rx                : std_logic;
 
-    -- 00 RO version h"13371337'
+  --00 RO version h"13371337'
   -- 01 RO status bit 0 denotes a transmit request. bit 1 a read to receive singal
   -- 02 RW CONF  (loopback,selftest )
 
@@ -163,24 +163,24 @@ begin
   begin
     if rising_edge(wb_clk_i) then  -- Synchronous to the rising edge of the clock
       case wb_adr_i is
-        when REG_VERSION => wb_dat_o <= version;
-        when REG_STATUS => wb_dat_o <= can0_can_status ;
-        when REG_CONF => wb_dat_o <= can0_config;
-        when REG_SAMPLE_RATE => wb_dat_o <= can0_can_sample_rate;
-        when REG_ID_FILTER => wb_dat_o <= can0_can_rx_id_filter;
+        when REG_VERSION        => wb_dat_o <= version;
+        when REG_STATUS         => wb_dat_o <= can0_can_status ;
+        when REG_CONF           => wb_dat_o <= can0_config;
+        when REG_SAMPLE_RATE    => wb_dat_o <= can0_can_sample_rate;
+        when REG_ID_FILTER      => wb_dat_o <= can0_can_rx_id_filter;
         when REG_ID_FILTER_MASK => wb_dat_o <= can0_can_rx_id_filter_mask;
-        when REG_TX_ID => wb_dat_o <= can0_can_tx_id;                -- not very usefull
-        when REG_TX_DLC => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;               -- not very usefull
-        when REG_TX_DATA0 => wb_dat_o <= can0_can_tx_data(31 downto 0); -- not very usefull
-        when REG_TX_DATA1 => wb_dat_o <= can0_can_tx_data(63 downto 32);-- not very usefull
-        when REG_TX_VALID => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;             -- not very usefull
+        when REG_TX_ID          => wb_dat_o <= can0_can_tx_id;                -- not very usefull
+        when REG_TX_DLC         => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;               -- not very usefull
+        when REG_TX_DATA0       => wb_dat_o <= can0_can_tx_data(31 downto 0); -- not very usefull
+        when REG_TX_DATA1       => wb_dat_o <= can0_can_tx_data(63 downto 32);-- not very usefull
+        when REG_TX_VALID       => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;             -- not very usefull
 
-        when REG_RX_ID => wb_dat_o <= can0_can_rx_id;
-        when REG_RX_DLC => wb_dat_o <= (31 downto 4 => '0') & can0_can_rx_dlc;
-        when REG_RX_DATA0 => wb_dat_o <= can0_can_rx_data(31 downto 0);
-        when REG_RX_DATA1 => wb_dat_o <= can0_can_rx_data(63 downto 32);
-        when REG_RX_DRR => -- ksip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
-        when others => wb_dat_o <= (others => 'X'); -- Return undefined for all other addresses
+        when REG_RX_ID          => wb_dat_o <= can0_can_rx_id;
+        when REG_RX_DLC         => wb_dat_o <= (31 downto 4 => '0') & can0_can_rx_dlc;
+        when REG_RX_DATA0       => wb_dat_o <= can0_can_rx_data(31 downto 0);
+        when REG_RX_DATA1       => wb_dat_o <= can0_can_rx_data(63 downto 32);
+        when REG_RX_DRR         => -- skip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
+        when others             => wb_dat_o <= (others => 'X'); -- Return undefined for all other addresses
       end case;
     end if;
   end process;
@@ -192,22 +192,22 @@ begin
       if wb_cyc_i='1' and wb_stb_i='1' and wb_we_i='1' then
         case wb_adr_i is
           -- configuration fields
-          when REG_VERSION =>  --ignore version
-          when REG_STATUS => -- ignore can0_can_status <=  wb_dat_i;
-          when REG_CONF => can0_config <=  wb_dat_i;
-          when REG_SAMPLE_RATE => can0_can_sample_rate <=  wb_dat_i;
-          when REG_ID_FILTER => can0_can_rx_id_filter <=  wb_dat_i;
-          when REG_ID_FILTER_MASK => can0_can_rx_id_filter_mask <=  wb_dat_i;
-          when REG_TX_ID => can0_can_tx_id <=  wb_dat_i;
-          when REG_TX_DLC => can0_can_tx_dlc <=  wb_dat_i(3 downto 0);
-          when REG_TX_DATA0 => can0_can_tx_data(31 downto 0) <=  wb_dat_i;
-          when REG_TX_DATA1 => can0_can_tx_data(63 downto 32) <=  wb_dat_i;
-          when REG_TX_VALID => can0_can_tx_valid <= wb_dat_i(0);
-          when REG_RX_ID =>  -- skip can0_can_rx_id <=  wb_dat_i;
-          when REG_RX_DLC =>  -- skip can0_can_rx_dlc <=  wb_dat_i;
-          when REG_RX_DATA0 =>  -- skip  can0_can_rx_data(31 downto 0) <=  wb_dat_i;
-          when REG_RX_DATA1 =>  -- skip can0_can_rx_data(63 downto 32) <=  wb_dat_i;
-          when REG_RX_DRR => can0_can_rx_drr <=  wb_dat_i(0);
+          when REG_VERSION        =>  --ignore version
+          when REG_STATUS         => -- ignore can0_can_status <=  wb_dat_i;
+          when REG_CONF           => can0_config                    <= wb_dat_i;
+          when REG_SAMPLE_RATE    => can0_can_sample_rate           <= wb_dat_i;
+          when REG_ID_FILTER      => can0_can_rx_id_filter          <= wb_dat_i;
+          when REG_ID_FILTER_MASK => can0_can_rx_id_filter_mask     <= wb_dat_i;
+          when REG_TX_ID          => can0_can_tx_id                 <= wb_dat_i;
+          when REG_TX_DLC         => can0_can_tx_dlc                <= wb_dat_i(3 downto 0);
+          when REG_TX_DATA0       => can0_can_tx_data(31 downto 0)  <= wb_dat_i;
+          when REG_TX_DATA1       => can0_can_tx_data(63 downto 32) <= wb_dat_i;
+          when REG_TX_VALID       => can0_can_tx_valid              <= wb_dat_i(0);
+          when REG_RX_ID          =>  -- skip can0_can_rx_id <=  wb_dat_i;
+          when REG_RX_DLC         =>  -- skip can0_can_rx_dlc <=  wb_dat_i;
+          when REG_RX_DATA0       =>  -- skip  can0_can_rx_data(31 downto 0) <=  wb_dat_i;
+          when REG_RX_DATA1       =>  -- skip can0_can_rx_data(63 downto 32) <=  wb_dat_i;
+          when REG_RX_DRR         => can0_can_rx_drr                <= wb_dat_i(0);
           when others => 
         end case;
       end if;
