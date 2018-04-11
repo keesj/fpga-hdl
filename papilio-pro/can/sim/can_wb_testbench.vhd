@@ -81,22 +81,21 @@ begin
         wait until falling_edge(clk);
         
         -- try to get the version
-        wb_adr_i(7 downto 0) <= x"00";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
+        wb_adr_i <= (24 downto 8 =>'0' ) & x"00";
 
         wait until rising_edge(clk);
         wait until falling_edge(clk);
-        wait until rising_edge(clk);
-        wait until falling_edge(clk);
+
         wb_cyc_i <= '0';
         --can0_version
         
         assert wb_dat_o = x"13371337" report "DATA unexpected version " & to_hstring(wb_dat_o) severity failure;
 
         -- try to get the initial config
-        wb_adr_i(7 downto 0) <=  x"02";
+        wb_adr_i <= (24 downto 8 =>'0' ) & x"02";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
@@ -112,7 +111,7 @@ begin
         wait until falling_edge(clk);
 
         -- write config
-        wb_adr_i(7 downto 0) <= x"02";
+        wb_adr_i <= (24 downto 8 =>'0' ) & x"02";
         wb_dat_i <= x"00000001";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
@@ -123,7 +122,7 @@ begin
         wb_cyc_i <= '0';
 
         -- read back now (and expect 1 as value)
-        wb_adr_i(7 downto 0) <= x"02";
+        wb_adr_i <= (24 downto 8 =>'0' ) & x"02";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
@@ -133,18 +132,17 @@ begin
 
         wb_cyc_i <= '0';
 
-        assert wb_dat_o = x"00000001" report "Config test expected empty but got " & to_hstring(wb_dat_o) severity failure;
+        assert wb_dat_o = x"00000001" report "Config test expected 1 but got " & to_hstring(wb_dat_o) severity failure;
 
         -- try to get the version
-        wb_adr_i(7 downto 0) <= x"00";
+        wb_adr_i <= (24 downto 8 =>'0' ) & x"00";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
 
         wait until rising_edge(clk);
         wait until falling_edge(clk);
-        wait until rising_edge(clk);
-        wait until falling_edge(clk);
+
         wb_cyc_i <= '0';
         --can0_version
         

@@ -67,7 +67,7 @@ begin
   wishbone_out(0)           <= wb_inta_o;
   -- End unpacking Wishbone signals
 
-  can0: entity  work.can port MAP(
+  can0: entity work.can port MAP(
         clk => wb_clk_i,
         rst => can0_rst,
         can_config => can0_config,

@@ -25,7 +25,8 @@ for i in syn/can_phy.vhd \
 	examples/can_send.vhd \
 	sim/can_send_testbench.vhd \
 	syn/can_wb.vhd \
-	sim/can_wb_testbench.vhd
+	sim/can_wb_testbench.vhd \
+	sim/can_wb_register_testbench.vhd
 do
 	ghdl -a --ieee=synopsys --std=08 ../$i
 done
@@ -39,6 +40,7 @@ ghdl -r --ieee=synopsys --std=08 can_rx_testbench --vcd=can_rx_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_two_devices_testbench --vcd=can_two_devices_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_testbench --vcd=can_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_wb_testbench --vcd=can_wb_testbench.vcd
+ghdl -r --ieee=synopsys --std=08 can_wb_register_testbench --vcd=can_wb_register_testbench.vcd
 #ghdl -r --ieee=synopsys --std=08 can_send_testbench --vcd=can_send_testbench.vcd --stop-time=100us
 #../tools/to_raw.py
 #sigrok-cli --input-format binary:samplerate=2 --input-file out --output-file out.sr
