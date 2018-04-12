@@ -38,7 +38,7 @@ begin
   wishbone_in(61) <= wb_clk_i;          -- clock
   wishbone_in(60) <= wb_rst_i;           -- reset signal
   wishbone_in(59 downto 28) <= wb_dat_i ;-- the date the master wishes to write
-  wishbone_in(27 downto 3) <= wb_adr_i;  -- contains the address of the request
+  wishbone_in(27 downto 3) <= wb_adr_i(24 downto 0);  -- contains the address of the request
   wishbone_in(2) <= wb_we_i;             -- true for any write requests
   wishbone_in(1) <= wb_cyc_i;           -- is true any time a wishbone transaction is taking place
   wishbone_in(0) <= wb_stb_i;          -- is true for any bus transaction request.
@@ -121,7 +121,7 @@ begin
         wb_cyc_i <= '0';
 
         -- read back now (and expect 1 as value)
-        wb_adr_i <= (24 downto 8 =>'0' ) & x"02";
+        wb_adr_i <= (31 downto 8 =>'0' ) & x"02";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
@@ -134,7 +134,7 @@ begin
         assert wb_dat_o = x"00000001" report "Config test expected 1 but got " & to_hstring(wb_dat_o) severity failure;
 
         -- try to get the version
-        wb_adr_i <= (24 downto 8 =>'0' ) & x"00";
+        wb_adr_i <= (31 downto 8 =>'0' ) & x"00";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
