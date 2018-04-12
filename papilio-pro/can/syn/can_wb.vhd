@@ -160,7 +160,7 @@ begin
   wb_ack_o <= '1' when wb_cyc_i='1' and wb_stb_i='1' else '0';
 
   -- wishbone read requests
-  process(wb_adr_i)
+  process(wb_adr_i,wb_clk_i)
   begin
     if wb_cyc_i='1' and wb_stb_i='1' and wb_we_i='0' then
       case wb_adr_i is

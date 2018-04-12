@@ -139,6 +139,7 @@ begin
     wbwrite( REGISTER2_ADDR, x"00000001");
 
     wbread( REGISTER2_ADDR, r );   
+
     assert r(31 downto 0) = x"00000001" report "CAN CONFIG MISMATCH "  & to_hstring(r) severity failure;
 
     wait for 100 ns;

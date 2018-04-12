@@ -23,7 +23,7 @@ architecture behavior of can_wb_testbench is
     signal  wb_clk_i:    std_logic;                     -- Wishbone clock
     signal  wb_rst_i:    std_logic;                     -- Wishbone reset (synchronous)
     signal  wb_dat_i:    std_logic_vector(31 downto 0); -- Wishbone data input  (32 bits)
-    signal  wb_adr_i:    std_logic_vector(24 downto 0); -- Wishbone address input  (32 bits)
+    signal  wb_adr_i:    std_logic_vector(31 downto 0); -- Wishbone address input  (32 bits)
     signal  wb_we_i:     std_logic;                     -- Wishbone write enable signal
     signal  wb_cyc_i:    std_logic;                     -- Wishbone cycle signal
     signal  wb_stb_i:    std_logic;                     -- Wishbone strobe signal  
@@ -84,7 +84,7 @@ begin
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
-        wb_adr_i <= (24 downto 8 =>'0' ) & x"00";
+        wb_adr_i <= (31 downto 8 =>'0' ) & x"00";
 
         wait until rising_edge(clk);
         wait until falling_edge(clk);
@@ -95,7 +95,7 @@ begin
         assert wb_dat_o = x"13371337" report "DATA unexpected version " & to_hstring(wb_dat_o) severity failure;
 
         -- try to get the initial config
-        wb_adr_i <= (24 downto 8 =>'0' ) & x"02";
+        wb_adr_i <= (31 downto 8 =>'0' ) & x"02";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
         wb_we_i  <= '0';
@@ -103,7 +103,6 @@ begin
         wait until rising_edge(clk);
         wait until falling_edge(clk);
         wb_cyc_i <= '0';
-
         assert wb_dat_o = x"00000000" report "Config test expected empty but got " & to_hstring(wb_dat_o) severity failure;
 
 
@@ -111,7 +110,7 @@ begin
         wait until falling_edge(clk);
 
         -- write config
-        wb_adr_i <= (24 downto 8 =>'0' ) & x"02";
+        wb_adr_i <= (31 downto 8 =>'0' ) & x"02";
         wb_dat_i <= x"00000001";
         wb_cyc_i <= '1';
         wb_stb_i <= '1';
