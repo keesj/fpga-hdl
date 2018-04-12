@@ -97,7 +97,8 @@ begin
   wb_clk_i <= wishbone_in(61);           -- clock
   wb_rst_i <= wishbone_in(60);           -- reset signal
   wb_dat_i <= wishbone_in(59 downto 28); -- the date the master wishes to write
-  wb_adr_i <= "0000000" & wishbone_in(27 downto 3);  -- contains the address of the request
+  -- bits 27-23 are the slave address or similar on zpuino?
+  wb_adr_i <= "000000000000" & wishbone_in(22 downto 3);  -- contains the address of the request
   wb_we_i  <= wishbone_in(2);             -- true for any write requests
   wb_cyc_i <= wishbone_in(1);            -- is true any time a wishbone transaction is taking place
   wb_stb_i <= wishbone_in(0);            -- is true for any bus transaction request.
@@ -159,9 +160,9 @@ begin
   wb_ack_o <= '1' when wb_cyc_i='1' and wb_stb_i='1' else '0';
 
   -- wishbone read requests
-  process(wb_clk_i)
+  process(wb_adr_i)
   begin
-    if rising_edge(wb_clk_i) then  -- Synchronous to the rising edge of the clock
+    if wb_cyc_i='1' and wb_stb_i='1' and wb_we_i='0' then
       case wb_adr_i is
         when REG_VERSION        => wb_dat_o <= version;
         when REG_STATUS         => wb_dat_o <= can0_can_status ;
@@ -189,6 +190,8 @@ begin
   process(wb_clk_i)
   begin
     if rising_edge(wb_clk_i) then  -- Synchronous to the rising edge of the clock
+      can0_can_rx_drr <= '0';
+      can0_can_tx_valid <= '0';
       if wb_cyc_i='1' and wb_stb_i='1' and wb_we_i='1' then
         case wb_adr_i is
           -- configuration fields
