@@ -30,9 +30,25 @@ architecture sim of can_wb_register_testbench is
   signal wb_dat_o_dly:   std_logic_vector(31 downto 0);
   
   --Define your Register addresses here
-  constant REGISTER0_ADDR:   std_logic_vector(31 downto 0) := x"00000000";
-  constant REGISTER1_ADDR:   std_logic_vector(31 downto 0) := x"00000001";
-  constant REGISTER2_ADDR:   std_logic_vector(31 downto 0) := x"00000002";
+
+  constant REG_VERSION        : std_logic_vector(31 downto 0) := x"00000000";
+  constant REG_STATUS         : std_logic_vector(31 downto 0) := x"00000001";
+  constant REG_CONF           : std_logic_vector(31 downto 0) := x"00000002";
+  constant REG_SAMPLE_RATE    : std_logic_vector(31 downto 0) := x"00000003";
+  constant REG_ID_FILTER      : std_logic_vector(31 downto 0) := x"00000004";
+  constant REG_ID_FILTER_MASK : std_logic_vector(31 downto 0) := x"00000005";
+
+  constant REG_TX_ID          : std_logic_vector(31 downto 0) := x"00000006";
+  constant REG_TX_DLC         : std_logic_vector(31 downto 0) := x"00000007";
+  constant REG_TX_DATA0       : std_logic_vector(31 downto 0) := x"00000008";
+  constant REG_TX_DATA1       : std_logic_vector(31 downto 0) := x"00000009";
+  constant REG_TX_VALID       : std_logic_vector(31 downto 0) := x"0000000a";
+
+  constant REG_RX_ID          : std_logic_vector(31 downto 0) := x"0000000b";
+  constant REG_RX_DLC         : std_logic_vector(31 downto 0) := x"0000000c";
+  constant REG_RX_DATA0       : std_logic_vector(31 downto 0) := x"0000000d";
+  constant REG_RX_DATA1       : std_logic_vector(31 downto 0) := x"0000000e";
+  constant REG_RX_DRR         : std_logic_vector(31 downto 0) := x"0000000f";
   
   --Define your external connections here
 
@@ -130,19 +146,36 @@ begin
 
 	-- This is where you should start providing your stimulus to test your design.
   
-    wbread( REGISTER0_ADDR, r );   
+    wbread( REG_VERSION, r );   
     assert r(31 downto 0) = x"13371337" report "CAN VERSION MISMATCH "  & to_hstring(r) severity failure;
 
-    wbread( REGISTER2_ADDR, r );   
+    wbread( REG_CONF, r );   
     assert r(31 downto 0) = x"00000000" report "CAN CONFIG MISMATCH "  & to_hstring(r) severity failure;
 
-    wbwrite( REGISTER2_ADDR, x"00000001");
+    wbwrite( REG_CONF, x"00000001");
 
-    wbread( REGISTER2_ADDR, r );   
+    wbread( REG_CONF, r );   
 
     assert r(31 downto 0) = x"00000001" report "CAN CONFIG MISMATCH "  & to_hstring(r) severity failure;
 
-    wait for 100 ns;
+    wbwrite( REG_SAMPLE_RATE, x"000000ff");
+
+    wbwrite( REG_TX_ID, x"00000000");
+    wbwrite( REG_TX_DLC, x"00000008");
+    wbwrite( REG_TX_DATA0, x"00000000");
+    wbwrite( REG_TX_DATA0, x"00000008");
+    wbwrite( REG_TX_VALID, x"00000001");
+    wbwrite( REG_RX_DRR, x"00000001");
+    for i in 0 to 1000 loop
+      wbread( REG_STATUS, r ); 
+      exit when r = 32x"0";
+      report "STATUS " & to_hstring(r) ;
+      wait for 1000 ns;
+    end loop;
+    wbread( REG_STATUS, r ); 
+    assert r = 32x"0" report "Expected 0 status but got " & to_hstring(r) severity failure;
+    wbread( REG_RX_ID, r ); 
+    assert r = x"00000000" report "Expected id 0 but got " & to_hstring(r) severity failure;
     test_running <= '0';
     report "DONE";
     wait;
