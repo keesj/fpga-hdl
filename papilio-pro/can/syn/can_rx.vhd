@@ -260,6 +260,9 @@ begin
                                 can_phy_ack_req <= '1';
                             else 
                                 report "CRC ERROR";
+                                crc_error <= '1';
+                                crc_rst <= '1';
+                                --can_rx_state <= can_state_idle;
                             end if;
                         when can_state_ack_delimiter =>
                             can_bit_counter <= (others => '0');

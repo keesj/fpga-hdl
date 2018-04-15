@@ -141,28 +141,42 @@ begin
         hread(l, can_out_len_to_send);
         hread(l, can_tx_out_to_send);
 
-        can_tx_out_len_input <= to_integer(unsigned(can_out_len_to_send));
-        --can_tx_out_len_input <= 15;
-        can_tx_out_len_input <= 128;
-        can_tx_out_input <= can_tx_out_to_send;
+        for i in 0 to 1 loop
+            can_tx_out_len_input <= to_integer(unsigned(can_out_len_to_send));
+
+            --can_tx_out_len_input <= 15;
+            can_tx_out_len_input <= 128;
+            can_tx_out_input <= can_tx_out_to_send;
+
+            if i = 1 then
+                can_tx_out_input(30) <= not can_tx_out_to_send(30);
+            end if;
 
 
-        can_drr <= '1'; 
-        wait until rising_edge(clk);
-        wait until falling_edge(clk);
-        can_drr <= '0';
-        wait until status(0) ='0';
-        assert (status(1 downto 0) = "00") report "NON null status" severity failure;
-        assert (can_in_id_expected = can_id(31 downto 21)) 
-          report "Unexpexted ID (expected="  & to_hstring(can_in_id_expected) & ") actual(" & to_hstring(can_id(31 downto 21)) & ")" severity failure;
+            can_drr <= '1'; 
+            wait until rising_edge(clk);
+            wait until falling_edge(clk);
+            can_drr <= '0';
+            wait until status(0) ='0';
+            
+            if i = 1 then
+                --expect crc error
+                assert (status(1 downto 0) = "10") report "Expected CRC error status status=" & to_hstring(status) severity failure;
+            else 
+                assert (status(1 downto 0) = "00") report "NON null status " & to_hstring(status) severity failure;
+                assert (can_in_id_expected = can_id(31 downto 21)) 
+                report "Unexpexted ID (expected="  & to_hstring(can_in_id_expected) & ") actual(" & to_hstring(can_id(31 downto 21)) & ")" severity failure;
 
-          
-        assert (can_in_dlc_expected = can_dlc) 
-          report "Unexpexted DLC "  & to_hstring(can_in_dlc_expected) & " " & to_hstring(can_dlc) severity failure;
+                
+                assert (can_in_dlc_expected = can_dlc) 
+                report "Unexpexted DLC "  & to_hstring(can_in_dlc_expected) & " " & to_hstring(can_dlc) severity failure;
 
-        assert (can_in_data_expected = can_data) 
-          report "Unexpexted DATA "  & to_hstring(can_in_data_expected) & " " & to_hstring(can_data) severity failure ;
+                assert (can_in_data_expected = can_data) 
+                report "Unexpexted DATA "  & to_hstring(can_in_data_expected) & " " & to_hstring(can_data) severity failure ;
+            end if;
+        end loop;
     end loop;
+
     report "DONE";
     test_running <= '0';
     wait; -- will wait forever
