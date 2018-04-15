@@ -66,7 +66,8 @@ begin
   can_status(0) <= can_rx_status(0);
   can_status(1) <= can_tx_status(0);
   can_status(2) <= can_rx_status(1); -- crc error
-  can_status(31 downto 3) <= (others => '0');
+  can_status(3) <= can_tx_status(1); -- lost artibration error
+  can_status(31 downto 4) <= (others => '0');
   quanta_clk_count <= can_sample_rate;
 
   can_tx_mux : entity work.can_tx_mux port map(

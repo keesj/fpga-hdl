@@ -137,7 +137,7 @@ begin
     end procedure;
 
     variable r : std_logic_vector(31 downto 0);
-
+    variable id : std_logic_vector(31 downto 0);
   begin
     
     wait until rst='1';
@@ -158,9 +158,11 @@ begin
 
     assert r(31 downto 0) = x"00000001" report "CAN CONFIG MISMATCH "  & to_hstring(r) severity failure;
 
-    wbwrite( REG_SAMPLE_RATE, x"0000000f");
+    wbwrite( REG_SAMPLE_RATE, x"00000001");
 
-    wbwrite( REG_TX_ID, x"00000000");
+    id := x"7fe00000";
+    wbwrite( REG_TX_ID, id);
+
     wbwrite( REG_TX_DLC, x"00000008");
     wbwrite( REG_TX_DATA0, x"00000000");
     wbwrite( REG_TX_DATA0, x"00000008");
@@ -173,9 +175,9 @@ begin
       wait for 1000 ns;
     end loop;
     wbread( REG_STATUS, r ); 
-    assert r = 32x"0" report "Expected 0 status but got " & to_hstring(r) severity failure;
+    assert r = x"00000000" report "Expected 0x00000000 status but got " & to_hstring(r) severity failure;
     wbread( REG_RX_ID, r ); 
-    assert r = x"00000000" report "Expected id 0 but got " & to_hstring(r) severity failure;
+    assert r = id report "Expected id " & to_hstring(id) & " but got " & to_hstring(r) severity failure;
     test_running <= '0';
     report "DONE";
     wait;

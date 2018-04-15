@@ -73,7 +73,8 @@ architecture rtl of can_tx is
     signal crc_ce : std_logic := '0';
     signal crc_rst : std_logic := '0';
     signal crc_data : std_logic_vector(14 downto 0);
-    
+
+    signal can_lost_arbitration :  std_logic := '0';
 begin
 
     crc: entity work.can_crc port map(
@@ -92,6 +93,7 @@ begin
     -- status / next state logic
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
     status(0) <= '0' when can_tx_state = can_state_idle else '1';
+    status(1) <= can_lost_arbitration;
     status(31 downto 1) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
@@ -116,7 +118,8 @@ begin
                 can_id_buf <= can_id;
                 can_dlc_buf <= can_dlc;
                 can_data_buf <= can_data;
-                
+                can_lost_arbitration <= '0';
+
                 -- and prepare next fields
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
                 shift_buff(127 downto 115) <= '0' & can_id(31 downto 21) & can_id(0);
@@ -242,7 +245,8 @@ begin
                     --check first 11 bits (not resent stuff)
                     if can_phy_tx_buf = '1' and can_phy_rx = '0' then
                         report "LOST ARBITRATION";
-                        --if we lost artibration
+                        can_lost_arbitration <= '1';
+                        --if we lost artibration we probably also need to go into idle and such...
                     end if;
                 end if;
             end if;
