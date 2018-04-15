@@ -153,6 +153,7 @@ begin
                     case can_tx_state is
                         when can_state_idle =>
                             --report "IDLE";
+                            --this code is never reached!!! 
                             can_phy_tx_en_buf <= '0';
                             bit_stuffing_en <='0';
                             crc_ce <= '0';
