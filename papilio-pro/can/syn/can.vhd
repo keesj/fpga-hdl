@@ -46,7 +46,7 @@ architecture behavior of can is
 
   -- Signals
   signal can_rx_clk_sync: std_logic := '0';         -- Start of frame detected
-  signal can_rx_clk_sync_en : std_logic := '1';     -- Start of frame detected
+  signal can_rx_clk_sync_en : std_logic := '1';     -- Enable clock sync
   signal can_clk_sample_set_clk: std_logic := '0';   --Sync Signal to set a value on the can bus
   signal can_clk_sample_check_clk: std_logic := '0'; --Sync Signal to check a value on the can bus
   signal can_clk_sample_get_clk: std_logic := '0';   --Sync Signal to read the value of a signal

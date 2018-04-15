@@ -137,7 +137,7 @@ begin
             wait until falling_edge(clk);
 
 
-            can0_can_tx_id(31 downto 21) <= "01000001101";
+            can0_can_tx_id(31 downto 21) <= "10000000000";
             can0_can_tx_id(0) <= '0';
             can0_can_tx_dlc <= x"8";
             can0_can_tx_data <= x"ff01020304050607";
@@ -148,7 +148,11 @@ begin
             can0_can_tx_valid <= '0';
 
             wait until can1_can_status(0) ='0';
-            assert can1_can_rx_id = can0_can_tx_id report "CAN ID ERROR" severity failure;
+            assert can1_can_rx_id = can0_can_tx_id report "CAN ID ERROR input=" & 
+                to_hstring(can0_can_tx_id(31 downto 21)) &
+                " output=" &
+                to_hstring(can1_can_rx_id(31 downto 21)) 
+                severity failure;
             assert can1_can_status(2) = '0' report "CAN RX CRC ERROR" severity failure;
         end loop;
         

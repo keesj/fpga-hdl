@@ -17,7 +17,7 @@ entity can_rx is
 
             can_signal_get      : in  std_logic; -- signal to set/change a value on the bus
 
-            can_rx_clk_sync_en  : in  std_logic := '1'; -- enable syncing on changing tx input
+            can_rx_clk_sync_en  : in  std_logic := '0'; -- enable syncing on changing tx input
             can_rx_clk_sync     : out std_logic := '0'; -- signal to synchronize the clock with values on the bus
 
             --We use to have the tx line here but timing of this module (the time of sampling)
@@ -144,7 +144,9 @@ begin
                 -- 13 bits  <= start of frame + id (11 bit) + rtr
                 shift_buff <= (others => '0');    
                 can_bit_counter <= (others => '0');
+                
                 if can_rx_clk_sync_en = '1' then
+                    report "GOING TO START OF FRAME";
                     can_rx_state <= can_state_start_of_frame;
                     can_rx_clk_sync <= '1';
                 else
@@ -154,7 +156,7 @@ begin
                 end if;
                 --reset stuffing (enable is done in SOF)
                 bit_shift_one_bits <= (others => '0');
-                bit_shift_zero_bits  <= (0=>'0' , others => '1');
+                bit_shift_zero_bits  <= (others => '1');
                 crc_rst <= '1';
                 
             elsif can_signal_get = '1' then
@@ -169,9 +171,9 @@ begin
                     shift_buff <= buff_current;
                     bit_shift_one_bits <= bit_shift_one_bits(3 downto 0) & can_phy_rx;
                     bit_shift_zero_bits <= bit_shift_zero_bits(3 downto 0) & can_phy_rx;
-
                     can_bit_counter <= can_bit_counter +1; 
                     crc_rst <= '0';
+
                     case can_rx_state is
                         when can_state_idle =>
                             --report "IDLE";
@@ -180,7 +182,7 @@ begin
                         when can_state_start_of_frame =>
                             report "SOF";
                             bit_stuffing_en <='1';
-                            crc_ce <= '1';
+                            crc_ce <= '1';  
                             --perpare next state
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_arbitration;

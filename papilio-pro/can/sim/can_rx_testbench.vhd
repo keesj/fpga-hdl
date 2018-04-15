@@ -20,8 +20,10 @@ architecture behavior of can_rx_testbench is
     signal can_id_filter      :   std_logic_vector (31 downto 0) := (others => '0');
     signal can_id_filter_mask :   std_logic_vector (31 downto 0) := (others => '0');
     signal can_signal_set : std_logic := '0';
+    signal can_signal_check : std_logic := '0';
+    signal can_signal_get : std_logic := '0';    
     signal can_rx_clk_sync   :   std_logic := '0';
-    signal can_rx_clk_sync_en : std_logic := '0';
+    signal can_rx_clk_sync_en : std_logic := '1';
     signal can_phy_ack_req     :   std_logic:= '0';
     signal can_phy_rx     :  std_logic:= '1';
 
@@ -46,7 +48,7 @@ begin
         status     => status,
         can_id_filter => can_id_filter,
         can_id_filter_mask => can_id_filter_mask,
-        can_signal_get => can_signal_set,
+        can_signal_get => can_signal_get,
         can_rx_clk_sync_en => can_rx_clk_sync_en,
         can_rx_clk_sync => can_rx_clk_sync,
         can_phy_ack_req  => can_phy_ack_req,
@@ -57,17 +59,39 @@ begin
 
    clk_process :process
    begin
-        clk <= '0';
-        can_signal_set <= '0';
-        wait for clk_period/2;  --for 0.5 ns signal is '0'.
-        clk <= '1';
-        can_signal_set <= '1';
-        wait for clk_period/2;  --for next 0.5 ns signal is '1'.
-        if test_running = '0' then
-          wait;
+	if test_running ='0' then
+		wait;
 	end if;
-   end process;
+        for i in 0 to 9 loop
+            if i = 0 then
+              can_signal_set <= '1';
+            end if;
+            if i = 4 then
+                can_signal_check <= '1';
+            end if;
+            
+            if i = 7 then
+                can_signal_get <='1';
+            end if;
 
+            clk <= '1';
+            wait for clk_period/2;  --for 0.5 ns signal is '0'.
+            clk <= '0';
+            wait for clk_period/2;  --for next 0.5 ns signal is
+
+            if i = 7 then 
+                can_signal_get <='0';
+            end if;
+            if i = 4 then
+                can_signal_check <= '0';
+            end if;
+
+            if i = 0 then
+                can_signal_set <= '0';
+            end if;
+        end loop;
+   end process;
+   
    data_out :process(clk)
    begin
         if rising_edge(clk) 

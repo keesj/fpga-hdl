@@ -158,7 +158,7 @@ begin
 
     assert r(31 downto 0) = x"00000001" report "CAN CONFIG MISMATCH "  & to_hstring(r) severity failure;
 
-    wbwrite( REG_SAMPLE_RATE, x"000000ff");
+    wbwrite( REG_SAMPLE_RATE, x"0000000f");
 
     wbwrite( REG_TX_ID, x"00000000");
     wbwrite( REG_TX_DLC, x"00000008");
