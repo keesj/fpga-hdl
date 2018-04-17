@@ -172,14 +172,14 @@ begin
         when REG_ID_FILTER_MASK => wb_dat_o <= can0_can_rx_id_filter_mask;
         when REG_TX_ID          => wb_dat_o <= can0_can_tx_id;                -- not very usefull
         when REG_TX_DLC         => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;               -- not very usefull
-        when REG_TX_DATA0       => wb_dat_o <= can0_can_tx_data(31 downto 0); -- not very usefull
-        when REG_TX_DATA1       => wb_dat_o <= can0_can_tx_data(63 downto 32);-- not very usefull
+        when REG_TX_DATA0       => wb_dat_o <= can0_can_tx_data(63 downto 32); -- not very usefull
+        when REG_TX_DATA1       => wb_dat_o <= can0_can_tx_data(31 downto 0 );-- not very usefull
         when REG_TX_VALID       => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;             -- not very usefull
 
         when REG_RX_ID          => wb_dat_o <= can0_can_rx_id;
         when REG_RX_DLC         => wb_dat_o <= (31 downto 4 => '0') & can0_can_rx_dlc;
-        when REG_RX_DATA0       => wb_dat_o <= can0_can_rx_data(31 downto 0);
-        when REG_RX_DATA1       => wb_dat_o <= can0_can_rx_data(63 downto 32);
+        when REG_RX_DATA0       => wb_dat_o <= can0_can_rx_data(63 downto 32);
+        when REG_RX_DATA1       => wb_dat_o <= can0_can_rx_data(31 downto 0);
         when REG_RX_DRR         => -- skip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
         when others             => wb_dat_o <= (others => 'X'); -- Return undefined for all other addresses
       end case;
@@ -203,8 +203,8 @@ begin
           when REG_ID_FILTER_MASK => can0_can_rx_id_filter_mask     <= wb_dat_i;
           when REG_TX_ID          => can0_can_tx_id                 <= wb_dat_i;
           when REG_TX_DLC         => can0_can_tx_dlc                <= wb_dat_i(3 downto 0);
-          when REG_TX_DATA0       => can0_can_tx_data(31 downto 0)  <= wb_dat_i;
-          when REG_TX_DATA1       => can0_can_tx_data(63 downto 32) <= wb_dat_i;
+          when REG_TX_DATA0       => can0_can_tx_data(63 downto 32) <= wb_dat_i;--assuming little endian the low value of the int is at index 0
+          when REG_TX_DATA1       => can0_can_tx_data(31 downto  0) <= wb_dat_i;
           when REG_TX_VALID       => can0_can_tx_valid              <= wb_dat_i(0);
           when REG_RX_ID          =>  -- skip can0_can_rx_id <=  wb_dat_i;
           when REG_RX_DLC         =>  -- skip can0_can_rx_dlc <=  wb_dat_i;
