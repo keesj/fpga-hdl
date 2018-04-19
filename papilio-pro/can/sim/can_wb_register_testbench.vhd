@@ -175,7 +175,7 @@ begin
       wait for 1000 ns;
     end loop;
     wbread( REG_STATUS, r ); 
-    assert r = x"00000008" report "Expected 00000008 status but got " & to_hstring(r) severity failure;
+    assert r = x"00000008" report "Expected 0x00000008 status but got " & to_hstring(r) severity failure;
     wbread( REG_RX_ID, r ); 
     assert r = id report "Expected id " & to_hstring(id) & " but got " & to_hstring(r) severity failure;
     test_running <= '0';
