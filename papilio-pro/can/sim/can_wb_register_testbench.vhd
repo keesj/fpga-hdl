@@ -170,12 +170,12 @@ begin
     wbwrite( REG_RX_DRR, x"00000001");
     for i in 0 to 1000 loop
       wbread( REG_STATUS, r ); 
-      exit when r = 32x"0";
+      exit when r = x"00000008" ;
       report "STATUS " & to_hstring(r) ;
       wait for 1000 ns;
     end loop;
     wbread( REG_STATUS, r ); 
-    assert r = x"00000000" report "Expected 0x00000000 status but got " & to_hstring(r) severity failure;
+    assert r = x"00000008" report "Expected 00000008 status but got " & to_hstring(r) severity failure;
     wbread( REG_RX_ID, r ); 
     assert r = id report "Expected id " & to_hstring(id) & " but got " & to_hstring(r) severity failure;
     test_running <= '0';

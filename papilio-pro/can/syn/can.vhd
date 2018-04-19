@@ -63,11 +63,12 @@ begin
   phy_rx_post_loopback_mux <= can_phy_pre_mux_tx  when can_config_loopback ='1' else phy_rx;
 
   --make can_status 0 the rx busy  and can_status 1 the tx_busy
-  can_status(0) <= can_rx_status(0);
-  can_status(1) <= can_tx_status(0);
-  can_status(2) <= can_rx_status(1); -- crc error
-  can_status(3) <= can_tx_status(1); -- lost artibration error
-  can_status(31 downto 4) <= (others => '0');
+  can_status(0) <= can_rx_status(0); -- rx status 0 = idle , 1 = busy 
+  can_status(1) <= can_tx_status(0); -- tx status 0 = idle , 1 = busy 
+  can_status(2) <= can_rx_status(1); -- rx crc error
+  can_status(3) <= can_rx_status(2); -- rx data ready
+  can_status(4) <= can_tx_status(1); -- tx lost artibration error
+  can_status(31 downto 5) <= (others => '0');
   quanta_clk_count <= can_sample_rate;
 
   can_tx_mux : entity work.can_tx_mux port map(
