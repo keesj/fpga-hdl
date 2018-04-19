@@ -32,10 +32,11 @@ architecture rtl of can_rx is
 
     -- can_*_buf are used to keep the locally recieved bits from can
     signal can_id_rx_buf   : std_logic_vector (31 downto 0) := (others => '0');-- 32 bit can_id + eff/rtr/err flags 
-    signal can_dlc_rx_buf  : std_logic_vector (3 downto 0) := (others => '0');
+    signal can_dlc_rx_buf  : std_logic_vector (3 downto 0)  := (others => '0');
     signal can_data_rx_buf : std_logic_vector (63 downto 0) := (others => '0');
     signal can_crc_rx_buf  : std_logic_vector (14 downto 0) := (others => '0');
 
+    signal can_data_ready  : std_logic                      :='0';
 
     --buffer for filter values (are read on can_drr)
     signal can_id_filter_buf       : std_logic_vector (31 downto 0) := (others => '0');
@@ -103,7 +104,8 @@ begin
     -- bit[0] of the status register signifies the logic is busy. the rest is unused
     status(0) <='0' when can_rx_state = can_state_idle else '1';
     status(1) <= crc_error;
-    status(31 downto 2) <= (others => '0');
+    status(2) <= can_data_ready; -- data is ready to be read
+    status(31 downto 3) <= (others => '0');
 
     -- The bit shift buffers are filled for evey bit time
     bit_stuffing_required <= '1' when  (bit_shift_one_bits = "11111" or bit_shift_zero_bits = "00000") and bit_stuffing_en = '1'  else '0';
@@ -133,6 +135,7 @@ begin
                 can_id_filter_buf <= can_id_filter;
                 can_id_filter_mask_buf <= can_id_filter_mask;
                 crc_error <= '0';
+                can_data_ready <= '0';
             end if;
 
             -- starting happens starting with a 0 bit value
@@ -258,6 +261,7 @@ begin
                             if can_crc_rx_buf = can_crc_calculated then
                                 report "CRC MATCH";
                                 can_phy_ack_req <= '1';
+                                can_data_ready <= '1';
                             else 
                                 report "CRC ERROR";
                                 crc_error <= '1';

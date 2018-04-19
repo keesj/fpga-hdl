@@ -156,6 +156,7 @@ begin
             can_drr <= '1'; 
             wait until rising_edge(clk);
             wait until falling_edge(clk);
+            assert status(2) = '0' report "Data ready should be 0 but is " & to_hstring(status(2 downto 0)) severity failure;
             can_drr <= '0';
             wait until status(0) ='0';
             
@@ -163,6 +164,7 @@ begin
                 --expect crc error
                 assert (status(1 downto 0) = "10") report "Expected CRC error status status=" & to_hstring(status) severity failure;
             else 
+                assert status(2) = '1' report "Data ready should be 1 but is " & to_hstring(status(2 downto 0)) severity failure;
                 assert (status(1 downto 0) = "00") report "NON null status " & to_hstring(status) severity failure;
                 assert (can_in_id_expected = can_id(31 downto 21)) 
                 report "Unexpexted ID (expected="  & to_hstring(can_in_id_expected) & ") actual(" & to_hstring(can_id(31 downto 21)) & ")" severity failure;
