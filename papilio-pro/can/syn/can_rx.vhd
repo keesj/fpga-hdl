@@ -261,7 +261,6 @@ begin
                             if can_crc_rx_buf = can_crc_calculated then
                                 report "CRC MATCH";
                                 can_phy_ack_req <= '1';
-                                can_data_ready <= '1';
                             else 
                                 report "CRC ERROR";
                                 crc_error <= '1';
@@ -276,6 +275,7 @@ begin
                             can_dlc <= can_dlc_rx_buf;
                             can_data <= can_data_rx_buf;
                             can_valid  <= '1';
+                            can_data_ready <= '1';
                             -- disable stuffing for those bits
                             bit_stuffing_en <='0';
                             if can_bit_counter = 6 then

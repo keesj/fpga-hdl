@@ -40,7 +40,7 @@ architecture behavior of can_wb is
   signal can0_can_tx_data           : std_logic_vector (63 downto 0) := (others => '0'); -- data
   signal can0_can_tx_valid          : std_logic := '0';    --Sync signal to read the values and start pushing them on the bus
   signal can0_can_rx_id             : std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
-  signal can0_can_rx_dlc            : std_logic_vector (3 downto 0) := (others => '0');  -- data lenght
+  signal can0_can_rx_dlc            : std_logic_vector (3 downto 0) := (others => '0');  -- data length
   signal can0_can_rx_data           : std_logic_vector (63 downto 0) := (others => '0'); -- data
   signal can0_can_rx_valid          : std_logic := '0';    --Sync that the data is valid
   signal can0_can_rx_drr            : std_logic := '0';     --rx data read ready (the fields can be invaludated and a new frame can be accepter)
@@ -181,7 +181,7 @@ begin
         when REG_RX_DATA0       => wb_dat_o <= can0_can_rx_data(63 downto 32);
         when REG_RX_DATA1       => wb_dat_o <= can0_can_rx_data(31 downto 0);
         when REG_RX_DRR         => -- skip wb_dat_o <= allzero(31 downto 1) & can0_can_rx_drr;
-        when others             => wb_dat_o <= (others => 'X'); -- Return undefined for all other addresses
+        when others             => wb_dat_o <= (others => '-'); -- Return undefined for all other addresses
       end case;
     end if;
   end process;
