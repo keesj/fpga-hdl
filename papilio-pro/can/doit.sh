@@ -22,6 +22,7 @@ for i in syn/can_phy.vhd \
 	syn/can.vhd \
 	sim/can_testbench.vhd \
 	sim/can_two_devices_testbench.vhd \
+	sim/can_two_devices_clk_sync_testbench.vhd \
 	examples/can_send.vhd \
 	sim/can_send_testbench.vhd \
 	syn/can_wb.vhd \
@@ -38,6 +39,7 @@ cp -r ../sim/test_data .
 ghdl -r --ieee=synopsys --std=08 can_tx_testbench --vcd=can_tx_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_rx_testbench --vcd=can_rx_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_two_devices_testbench --vcd=can_two_devices_testbench.vcd
+ghdl -r --ieee=synopsys --std=08 can_two_devices_clk_sync_testbench --vcd=can_two_devices_clk_sync_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_testbench --vcd=can_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_wb_register_testbench --vcd=can_wb_register_testbench.vcd
 ghdl -r --ieee=synopsys --std=08 can_wb_testbench --vcd=can_wb_testbench.vcd
