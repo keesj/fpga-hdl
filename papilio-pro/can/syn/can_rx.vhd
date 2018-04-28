@@ -271,15 +271,16 @@ begin
                             can_bit_counter <= (others => '0');
                             can_rx_state <= can_state_eof;
                         when can_state_eof =>
-                            can_id <= can_id_rx_buf;
-                            can_dlc <= can_dlc_rx_buf;
-                            can_data <= can_data_rx_buf;
-                            can_valid  <= '1';
-                            can_data_ready <= '1';
+
                             -- disable stuffing for those bits
                             bit_stuffing_en <='0';
                             if can_bit_counter = 6 then
                                 crc_rst <= '1';--reset CRC for the next round
+                                can_id <= can_id_rx_buf;
+                                can_dlc <= can_dlc_rx_buf;
+                                can_data <= can_data_rx_buf;
+                                can_valid  <= '1';
+                                can_data_ready <= '1';
                                 can_rx_state <= can_state_idle;
                             end if;                            
                     end case;
