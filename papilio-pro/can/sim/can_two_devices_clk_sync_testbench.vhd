@@ -133,7 +133,7 @@ begin
             wait until rising_edge(clk);
             wait until falling_edge(clk);
 
-            for i in 0 to 3 loop
+            for i in 0 to 10 loop
                 --prepare to recieve some data
                 can1_can_rx_drr <= '1';
                 wait until rising_edge(clk);
