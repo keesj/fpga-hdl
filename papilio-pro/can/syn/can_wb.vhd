@@ -130,30 +130,6 @@ begin
         phy_rx    => rx
 );
 
-  --map registers
-  -- 00 RO version h"13371337'
-  -- 01 RO status bit 0 denotes a transmit request. bit 1 a read to receive singal
-  -- 02 RW CONF  (loopback,selftest )
-
-  -- 03 RW CONF sample rate
-  -- 04 RW CONF RX id filter
-  -- 05 RW CONF RX id filter mask
-
-  -- 06 RW TX tx_id (11 msb are id) and lsb is request response
-  -- 07 RW TX the 4 lsb bytes are the data length (code)
-  -- 08 RW TX bits 31 to 0 of the data 
-  -- 09 RW bits 63 to 32 of the data 
-  -- 0A WO TX_VALID
-
-  -- 0B RO RX tx _id (11 msb are id) and lsb is request response
-  -- 0C RO RX LCD the 4 lsb bytes are the data length (code)
-  -- 0d RO RX RX_DAT0 
-  -- 0e RO RX RX_DAT1
-  -- 0f WO TX_DATA_READ_READY (the data has been read)
-
-  --register8_in <= can0_can_status;       -- get status (rx/tx)
-  --register9_in <= x"deadbeef";       -- get status (rx/tx)
-
   can0_rst <= wishbone_in(60);
 
   --wb 
@@ -170,12 +146,11 @@ begin
         when REG_SAMPLE_RATE    => wb_dat_o <= can0_can_sample_rate;
         when REG_ID_FILTER      => wb_dat_o <= can0_can_rx_id_filter;
         when REG_ID_FILTER_MASK => wb_dat_o <= can0_can_rx_id_filter_mask;
-        when REG_TX_ID          => wb_dat_o <= can0_can_tx_id;                -- not very usefull
-        when REG_TX_DLC         => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;               -- not very usefull
-        when REG_TX_DATA0       => wb_dat_o <= can0_can_tx_data(63 downto 32); -- not very usefull
-        when REG_TX_DATA1       => wb_dat_o <= can0_can_tx_data(31 downto 0 );-- not very usefull
-        when REG_TX_VALID       => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;             -- not very usefull
-
+        when REG_TX_ID          => wb_dat_o <= can0_can_tx_id;                           -- not very usefull
+        when REG_TX_DLC         => wb_dat_o <= (31 downto 4 => '0')  & can0_can_tx_dlc;  -- not very usefull
+        when REG_TX_DATA0       => wb_dat_o <= can0_can_tx_data(63 downto 32);           -- not very usefull
+        when REG_TX_DATA1       => wb_dat_o <= can0_can_tx_data(31 downto 0 );           -- not very usefull
+        when REG_TX_VALID       => wb_dat_o <=  (31 downto 1 => '0') & can0_can_tx_valid;-- not very usefull(will read 0)
         when REG_RX_ID          => wb_dat_o <= can0_can_rx_id;
         when REG_RX_DLC         => wb_dat_o <= (31 downto 4 => '0') & can0_can_rx_dlc;
         when REG_RX_DATA0       => wb_dat_o <= can0_can_rx_data(63 downto 32);

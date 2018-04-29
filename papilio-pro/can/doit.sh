@@ -33,17 +33,12 @@ do
 done
 
 
-#ghdl  -r --ieee=synopsys --std=08 can_crc_testbench --vcd=can_crc_testbench.vcd --stop-time=1ms && \
-#ghdl -r --ieee=synopsys --std=08 can_clk_testbench --vcd=can_clk_testbench.vcd --stop-time=3ms && \
 cp -r ../sim/test_data .
-ghdl -r --ieee=synopsys --std=08 can_tx_testbench --vcd=can_tx_testbench.vcd
-ghdl -r --ieee=synopsys --std=08 can_rx_testbench --vcd=can_rx_testbench.vcd
-ghdl -r --ieee=synopsys --std=08 can_two_devices_testbench --vcd=can_two_devices_testbench.vcd
-ghdl -r --ieee=synopsys --std=08 can_two_devices_clk_sync_testbench --vcd=can_two_devices_clk_sync_testbench.vcd
-ghdl -r --ieee=synopsys --std=08 can_testbench --vcd=can_testbench.vcd
-ghdl -r --ieee=synopsys --std=08 can_wb_register_testbench --vcd=can_wb_register_testbench.vcd
-ghdl -r --ieee=synopsys --std=08 can_wb_testbench --vcd=can_wb_testbench.vcd
-##ghdl -r --ieee=synopsys --std=08 can_send_testbench --vcd=can_send_testbench.vcd --stop-time=100us
+for i in can_crc_testbench can_clk_testbench can_tx_testbench can_rx_testbench can_two_devices_testbench can_two_devices_clk_sync_testbench can_testbench can_wb_register_testbench can_wb_testbench
+do
+	ghdl  -r --ieee=synopsys --std=08 $i
+#	ghdl  -r --ieee=synopsys --std=08 $i --vcd=$i.vcd 
+done
 #../tools/to_raw.py
 #sigrok-cli --input-format binary:samplerate=2 --input-file out --output-file out.sr
 )

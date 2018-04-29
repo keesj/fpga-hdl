@@ -52,7 +52,8 @@ architecture rtl of can_rx is
 
     -- Counter used to count the bits recieved
     signal can_bit_counter : unsigned (7 downto 0) := (others => '0');
-    
+
+    signal can_prev_rx : std_logic := '1';
 
     -- Two buffers to keep the last bits sent to detect when we need bit stuffing
     --https://en.wikipedia.org/wiki/CAN_bus#Bit_stuffing
@@ -125,6 +126,8 @@ begin
             -- to 0 every cycle
             crc_ce <= '0';
             can_rx_clk_sync <= '0';
+            can_prev_rx <= can_phy_rx;
+
             if can_drr = '1' then
                 report "CAN CLEAR";
                 -- Empty internal buffers
@@ -136,6 +139,11 @@ begin
                 can_id_filter_mask_buf <= can_id_filter_mask;
                 crc_error <= '0';
                 can_data_ready <= '0';
+            end if;
+
+
+            if can_phy_rx /= can_prev_rx then
+                can_rx_clk_sync <= '1';
             end if;
 
             -- starting happens starting with a 0 bit value

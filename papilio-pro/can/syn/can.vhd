@@ -57,6 +57,7 @@ architecture behavior of can is
   signal can_rx_status : std_logic_vector (31 downto 0):= (others => '0'); --recieve status
 
   alias can_config_loopback is can_config(0);
+  alias can_config_clk_sync_en is can_config(1); -- enable clock sync
 begin
 
   -- implement loop back if requesed
@@ -89,6 +90,7 @@ begin
     rst => rst,
     quanta_clk_count => quanta_clk_count,
     can_rx_clk_sync => can_rx_clk_sync ,
+    can_config_clk_sync_en => can_config_clk_sync_en,
     can_sample_set_clk => can_clk_sample_set_clk ,
     can_sample_check_clk => can_clk_sample_check_clk ,
     can_sample_get_clk => can_clk_sample_get_clk 

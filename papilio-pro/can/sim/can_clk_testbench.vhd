@@ -17,7 +17,10 @@ architecture behavior of can_clk_testbench is
   signal can_sample_set_clk: std_logic := '0';
   signal can_sample_check_clk: std_logic := '0';
   signal can_sample_get_clk: std_logic := '0';
+  signal can_config_clk_sync_en: std_logic := '1';
+  signal test_running :  std_logic := '1';
 
+  
    -- Logic components
   constant clk_period : time := 10 ns;
   begin
@@ -28,6 +31,7 @@ architecture behavior of can_clk_testbench is
     rst => rst,
     quanta_clk_count => quanta_clk_count,
     can_rx_clk_sync => can_rx_clk_sync ,
+    can_config_clk_sync_en => can_config_clk_sync_en,
     can_sample_set_clk => can_sample_set_clk ,
     can_sample_check_clk => can_sample_check_clk ,
     can_sample_get_clk => can_sample_get_clk 
@@ -39,6 +43,9 @@ architecture behavior of can_clk_testbench is
     wait for clk_period/2;  --for 0.5 ns signal is '0'.
     clk <= '1';
     wait for clk_period/2;  --for next 0.5 ns signal is '1'.
+    if test_running = '0' then
+      wait;
+    end if;
   end process;
    
   -- Test bench statements
@@ -51,7 +58,8 @@ architecture behavior of can_clk_testbench is
     wait until rising_edge(clk);
     rst <= '0';
     wait for 10 ms;
-    --wait; -- will wait forever
+    test_running <= '0';
+    wait; -- will wait forever
   end process tb;
    --  end test bench 
 end;

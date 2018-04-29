@@ -9,7 +9,7 @@ architecture behavior of can_two_devices_clk_sync_testbench is
     signal test_running :  std_logic := '1';
     signal clk :  std_logic;
 
-    signal can0_can_config : std_logic_vector (31 downto 0) :=  (others => '0');
+    signal can0_can_config : std_logic_vector (31 downto 0) :=  ( 1=>'1' ,others => '0');
     signal can0_can_sample_rate :  std_logic_vector (31 downto 0) := (others => '0'); --
     signal can0_rst :  std_logic;
     signal can0_can_tx_id    :  std_logic_vector (31 downto 0) := (others => '0'); -- 32 bit can_id + eff/rtr/err flags 
@@ -111,49 +111,61 @@ begin
     can0_test : process
     begin
 
-        --reset can busses
-        can0_rst <= '1';
-        can1_rst <= '1';
-        wait until rising_edge(clk);
-        wait until falling_edge(clk);
-        can0_rst <= '0';
-        can1_rst <= '0';
-
-        --set sample rate
-        can0_can_sample_rate <=  std_logic_vector(to_unsigned(3,32));
-        can1_can_sample_rate <=  std_logic_vector(to_unsigned(3,32));
-
-        wait until rising_edge(clk);
-        wait until falling_edge(clk);
-
-        for i in 0 to 2 loop
-            --prepare to recieve some data
-            can1_can_rx_drr <= '1';
+        for z in 0 to 1 loop
+            --reset can busses
+            can0_rst <= '1';
+            can1_rst <= '1';
             wait until rising_edge(clk);
             wait until falling_edge(clk);
-            can1_can_rx_drr <= '0';
+            can0_rst <= '0';
+            can1_rst <= '0';
 
+
+            can1_can_config(1 downto 0) <=  "10";
+
+            --set sample rate
+            can0_can_sample_rate <=  std_logic_vector(to_unsigned(40,32));
+            if z = 0 then
+                can1_can_sample_rate <=  std_logic_vector(to_unsigned(41,32));
+            else 
+                can1_can_sample_rate <=  std_logic_vector(to_unsigned(39,32));
+            end if;
             wait until rising_edge(clk);
             wait until falling_edge(clk);
 
+            for i in 0 to 3 loop
+                --prepare to recieve some data
+                can1_can_rx_drr <= '1';
+                wait until rising_edge(clk);
+                wait until falling_edge(clk);
+                can1_can_rx_drr <= '0';
 
-            can0_can_tx_id(31 downto 21) <= "10000000000";
-            can0_can_tx_id(0) <= '0';
-            can0_can_tx_dlc <= x"8";
-            can0_can_tx_data <= x"ff01020304050607";
+                wait until rising_edge(clk);
+                wait until falling_edge(clk);
 
-            can0_can_tx_valid <= '1'; 
-            wait until rising_edge(clk);
-            wait until falling_edge(clk);
-            can0_can_tx_valid <= '0';
+                can0_can_tx_id(31 downto 21) <= std_logic_vector(to_unsigned( i,11));
+                --can0_can_tx_id(31 downto 21) <= "00000000000";
+                can0_can_tx_id(0) <= '0';
+                can0_can_tx_dlc <= x"8";
+                can0_can_tx_data <= x"ff01020304050607";
 
-            wait until can1_can_status(0) ='0';
-            assert can1_can_rx_id = can0_can_tx_id report "CAN ID ERROR input=" & 
-                to_hstring(can0_can_tx_id(31 downto 21)) &
-                " output=" &
-                to_hstring(can1_can_rx_id(31 downto 21)) 
-                severity failure;
-            assert can1_can_status(2) = '0' report "CAN RX CRC ERROR" severity failure;
+                can0_can_tx_valid <= '1'; 
+                wait until rising_edge(clk);
+                wait until falling_edge(clk);
+                can0_can_tx_valid <= '0';
+
+                wait until can1_can_status(3) ='1';
+                assert can1_can_status(0) = '0' report "STATUS error" severity failure;
+
+                assert can1_can_status(2) = '0' 
+                    report "ROUND " & integer'image(i) & 
+                    " CRC ERROR  " & 
+                    " CAN ID in=" & to_hstring(can0_can_tx_id(31 downto 21)) &
+                    " out=" &
+                    to_hstring(can1_can_rx_id(31 downto 21))  
+                    severity failure;
+
+            end loop;
         end loop;
         
         report "DONE";

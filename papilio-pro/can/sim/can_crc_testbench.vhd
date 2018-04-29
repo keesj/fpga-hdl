@@ -15,6 +15,8 @@ architecture behavior of can_crc_testbench is
   signal ce: std_logic;
   signal rst : std_logic;
   signal crc: std_logic_vector(14 downto 0);
+  signal test_running :  std_logic := '1';
+  
   constant clk_period : time := 10 ns;
   
  begin
@@ -32,6 +34,9 @@ architecture behavior of can_crc_testbench is
         wait for clk_period/2;  --for 0.5 ns signal is '0'.
         clk <= '1';
         wait for clk_period/2;  --for next 0.5 ns signal is '1'.
+        if test_running ='0' then
+          wait;
+        end if;
    end process;
   
 
@@ -65,7 +70,9 @@ architecture behavior of can_crc_testbench is
       end loop;
       assert crc = crc_in report "CRC mismatch" severity error;
       report "DONE";
+      test_running <='0';
+      wait;
     end loop;
-    wait;
+
   end process tb;
 end;
