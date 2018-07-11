@@ -74,7 +74,6 @@ begin
     wait for 10 ns; -- wait until global set/reset completes
     while not endfile(testbench_data) loop
         readline(testbench_data,l);
-
         hread(l, can_in_id);
         read(l,  can_in_rtr);
         hread(l, can_in_dlc);
@@ -92,86 +91,6 @@ begin
         can_valid <= '0';
         wait until status(0) ='0';
     end loop;
-    
-    -- add user defined stimulus here
-
-    --can_id(31 downto 21)  <= "000" & "0001" & "0100";
-    can_id(31 downto 21)  <= "000" & "0001" & "0100";
-    can_id(0) <= '0';
-    can_dlc <= "0001";
-    can_data  <= X"0100000000000000" ;
-
-    can_valid <= '1';   
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    can_valid <= '0';
-    wait until status(0) ='0';
-
-    can_id(31 downto 21)  <= "00001111000";
-    can_id(0) <= '0';
-    can_dlc <= "0000";
-    can_data  <= X"1122334455667788" ;
-    can_valid <= '1';   
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    can_valid <= '0';
-    wait until status(0) ='0';
-
-    can_id(31 downto 21)  <= "00000101000";
-    can_id(0) <= '0';
-
-    can_dlc <= "0001";
-    can_data  <= X"1122334455667788" ;
-    can_valid <= '1';   
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    can_valid <= '0';
-    wait until status(0) ='0';
-
-    can_id(31 downto 21)  <= "00000101000";
-    can_id(0) <= '0';
-    can_dlc <= "0010";
-    can_data  <= X"1122334455667788" ;
-    can_valid <= '1';
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    can_valid <= '0';
-    wait until status(0) ='0';
-
-    --https://news.voyage.auto/an-introduction-to-the-can-bus-how-to-programmatically-control-a-car-f1b18be4f377
-    can_id(31 downto 21)  <= "00000010100";
-    can_id(0) <= '0';
-    can_dlc <= "1000";
-    can_data  <= X"016f707972696768" ;
-    can_valid <= '1';
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    can_valid <= '0';
-    wait until status(0) ='0';
-    
-    
-    --based on 
-    --https://github.com/EliasOenal/sigrok-dumps/blob/master/can/arbitrary_traffic/bsd_license_can_standard_500k.logicdata
-    can_id(31 downto 21)  <= "0000" & "0001101";
-    can_id(0) <= '0';
-    can_dlc <= "1000";
-    can_data  <= X"436f707972696768" ;
-    can_valid <= '1';
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    can_valid <= '0';
-    wait until status(0) ='0';
-
-    --CRC 5C70
-    can_id(31 downto 21)  <= "010" & "0000" & "0010";
-    can_id(0) <= '0';
-    can_dlc <= "0101";
-    can_data  <= X"0050004e52696768" ;
-    can_valid <= '1';
-    wait until rising_edge(clk);
-    wait until falling_edge(clk);
-    can_valid <= '0';
-    wait until status(0) ='0';
     wait; -- will wait forever
   end process tb; 
 end;
