@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
+use ieee.std_logic_textio.all;
 
 entity can_tx_testbench is
 end can_tx_testbench;
@@ -59,8 +61,38 @@ begin
 
   -- Test bench statements
   tb : process
+    file testbench_data : text open READ_MODE is "can_tx_testbench_data.hex";
+    variable l : line;
+    --00014 0 01 0122334455667788 5C70
+    variable can_in_id : std_logic_vector(10 downto 0);
+    variable can_in_rtr : std_logic;
+    variable can_in_dlc : std_logic_vector(3 downto 0);  
+    variable can_in_data : std_logic_vector(63 downto 0);
+    variable can_in_crc : std_logic_vector(14 downto 0);
   begin
+
     wait for 10 ns; -- wait until global set/reset completes
+    while not endfile(testbench_data) loop
+        readline(testbench_data,l);
+
+        hread(l, can_in_id);
+        read(l,  can_in_rtr);
+        hread(l, can_in_dlc);
+        hread(l, can_in_data);
+        hread(l, can_in_crc);
+
+        can_id(31 downto 21) <= can_in_id;
+        can_id(0) <= can_in_rtr;
+        can_dlc <= can_in_dlc;
+        can_data <= can_in_data;
+
+        can_valid <= '1'; 
+        wait until rising_edge(clk);
+        wait until falling_edge(clk);
+        can_valid <= '0';
+        wait until status(0) ='0';
+    end loop;
+    
     -- add user defined stimulus here
 
     --can_id(31 downto 21)  <= "000" & "0001" & "0100";
